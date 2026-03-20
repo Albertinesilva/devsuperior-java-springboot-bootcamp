@@ -5,20 +5,23 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.albertsilva.dev.dscatalog.entities.Category;
+import com.albertsilva.dev.dscatalog.dto.category.mapper.CategoryMapper;
+import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
 
 @Service
 public class CategoryService {
 
   private final CategoryRepository categoryRepository;
+  private final CategoryMapper categoryMapper;  
 
-  public CategoryService(CategoryRepository categoryRepository) {
+  public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
     this.categoryRepository = categoryRepository;
+    this.categoryMapper = categoryMapper;
   }
 
   @Transactional(readOnly = true)
-  public List<Category> findAll() {
-    return categoryRepository.findAll();
+  public List<CategoryResponse> findAll() {
+    return categoryMapper.toResponseList(categoryRepository.findAll());
   }
 }
