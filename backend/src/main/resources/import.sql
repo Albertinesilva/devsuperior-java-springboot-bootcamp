@@ -1,3 +1,15 @@
-INSERT INTO tb_category(name) VALUES('Books');
-INSERT INTO tb_category(name) VALUES('Eletronics');
-INSERT INTO tb_category(name) VALUES('Computers');
+INSERT INTO tb_category(name, description, active) VALUES ('Books', 'Books and literature', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Electronics', 'Electronic devices and gadgets', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Computers', 'Computers, laptops and accessories', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Home Appliances', 'Appliances for home use', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Furniture', 'Home and office furniture', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Toys', 'Toys and games for children', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Clothing', 'Men and women clothing', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Shoes', 'Footwear and sneakers', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Sports', 'Sports equipment and accessories', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Health', 'Health and personal care products', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Beauty', 'Beauty and cosmetics products', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Automotive', 'Car parts and automotive accessories', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Garden', 'Garden and outdoor products', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Pet Supplies', 'Products for pets and animals', true);
+INSERT INTO tb_category(name, description, active) VALUES ('Office Supplies', 'Office materials and supplies', true);

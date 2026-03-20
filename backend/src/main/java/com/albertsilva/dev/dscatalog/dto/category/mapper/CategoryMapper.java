@@ -19,6 +19,11 @@ public class CategoryMapper {
 
     Category entity = new Category();
     entity.setName(request.name());
+    entity.setDescription(request.description());
+
+    // trata null → default false
+    entity.setActive(request.active() != null ? request.active() : false);
+
     return entity;
   }
 
@@ -27,7 +32,18 @@ public class CategoryMapper {
       return;
     }
 
-    entity.setName(request.name());
+    if (request.name() != null) {
+      entity.setName(request.name());
+    }
+
+    if (request.description() != null) {
+      entity.setDescription(request.description());
+    }
+
+    // só atualiza se vier no request
+    if (request.active() != null) {
+      entity.setActive(request.active());
+    }
   }
 
   public CategoryResponse toResponse(Category entity) {
@@ -37,7 +53,9 @@ public class CategoryMapper {
 
     return new CategoryResponse(
         entity.getId(),
-        entity.getName());
+        entity.getName(),
+        entity.getDescription(),
+        entity.isActive());
   }
 
   public List<CategoryResponse> toResponseList(List<Category> entities) {
