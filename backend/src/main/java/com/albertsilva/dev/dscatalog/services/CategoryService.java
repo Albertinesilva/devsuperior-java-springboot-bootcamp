@@ -9,6 +9,7 @@ import com.albertsilva.dev.dscatalog.dto.category.mapper.CategoryMapper;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.entities.Category;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
+import com.albertsilva.dev.dscatalog.services.exceptions.EntityNotFoundException;
 
 @Service
 public class CategoryService {
@@ -28,7 +29,7 @@ public class CategoryService {
 
   @Transactional(readOnly = true)
   public CategoryResponse findById(Long id) {
-    Category entity = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+    Category entity = categoryRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Entity not found id: " + id));
     return categoryMapper.toResponse(entity);
   }
 }
