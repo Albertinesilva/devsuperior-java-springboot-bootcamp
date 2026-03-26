@@ -2,6 +2,8 @@ package com.albertsilva.dev.dscatalog.services;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +13,7 @@ import com.albertsilva.dev.dscatalog.dto.category.request.CategoryUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.entities.Category;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
+import com.albertsilva.dev.dscatalog.services.exceptions.DatabaseException;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -55,6 +58,19 @@ public class CategoryService {
 
     } catch (EntityNotFoundException e) {
       throw new ResourceNotFoundException("Entity not found id: " + id);
+    }
+  }
+
+  @Transactional
+  public void delete(Long id) {
+    Category entity = categoryRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Entity not found id: " + id));
+
+    try {
+      categoryRepository.delete(entity);
+
+    } catch (DataIntegrityViolationException e) {
+      throw new DatabaseException("Integrity violation: cannot delete category with related entities");
     }
   }
 }
