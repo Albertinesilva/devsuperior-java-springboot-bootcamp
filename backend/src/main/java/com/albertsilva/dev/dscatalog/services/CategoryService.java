@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.albertsilva.dev.dscatalog.dto.category.mapper.CategoryMapper;
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.entities.Category;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
@@ -30,6 +31,13 @@ public class CategoryService {
   @Transactional(readOnly = true)
   public CategoryResponse findById(Long id) {
     Category entity = categoryRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Entity not found id: " + id));
+    return categoryMapper.toResponse(entity);
+  }
+
+  @Transactional
+  public CategoryResponse insert(CategoryCreateRequest categoryCreateRequest) {
+    Category entity = categoryMapper.toEntity(categoryCreateRequest);
+    entity = categoryRepository.save(entity);
     return categoryMapper.toResponse(entity);
   }
 }
