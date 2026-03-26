@@ -1,7 +1,6 @@
 package com.albertsilva.dev.dscatalog.dto.category.mapper;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
@@ -58,13 +57,7 @@ public class CategoryMapper {
         entity.isActive());
   }
 
-  public List<CategoryResponse> toResponseList(List<Category> entities) {
-    if (entities == null) {
-      return List.of();
-    }
-
-    return entities.stream()
-        .map(this::toResponse)
-        .toList();
+  public Page<CategoryResponse> toResponsePage(Page<Category> entities) {
+    return entities.map(this::toResponse);
   }
 }

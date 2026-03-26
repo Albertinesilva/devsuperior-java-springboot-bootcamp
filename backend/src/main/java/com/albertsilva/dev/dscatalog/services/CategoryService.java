@@ -1,9 +1,8 @@
 package com.albertsilva.dev.dscatalog.services;
 
-import java.util.List;
-
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +29,8 @@ public class CategoryService {
   }
 
   @Transactional(readOnly = true)
-  public List<CategoryResponse> findAll() {
-    return categoryMapper.toResponseList(categoryRepository.findAll());
+  public Page<CategoryResponse> findAllPaged(Pageable pageable) {
+    return categoryMapper.toResponsePage(categoryRepository.findAll(pageable));
   }
 
   @Transactional(readOnly = true)
