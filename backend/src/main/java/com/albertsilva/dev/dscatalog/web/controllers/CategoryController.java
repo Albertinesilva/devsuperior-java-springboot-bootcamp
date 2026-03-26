@@ -7,12 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.services.CategoryService;
 
@@ -45,5 +47,12 @@ public class CategoryController {
   @GetMapping(value = "/{id}")
   public ResponseEntity<CategoryResponse> findById(@PathVariable Long id) {
     return ResponseEntity.ok(categoryService.findById(id));
+  }
+
+  @PutMapping(value = "/{id}")
+  public ResponseEntity<CategoryResponse> update(@PathVariable Long id,
+      @RequestBody CategoryUpdateRequest categoryUpdateRequest) {
+    CategoryResponse categoryResponse = categoryService.update(id, categoryUpdateRequest);
+    return ResponseEntity.ok(categoryResponse);
   }
 }
