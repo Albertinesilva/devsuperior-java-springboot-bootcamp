@@ -1,12 +1,16 @@
 package com.albertsilva.dev.dscatalog.entities;
 
 import java.io.Serializable;
+import java.time.Instant;
 
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 
 @Entity
 @Table(name = "tb_category")
@@ -19,6 +23,12 @@ public class Category implements Serializable {
   private String name;
   private String description;
   private boolean active;
+
+  @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
+  private Instant createdAt;
+
+  @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
+  private Instant updatedAt;
 
   public Category() {
   }
@@ -60,6 +70,24 @@ public class Category implements Serializable {
 
   public void setActive(boolean active) {
     this.active = active;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
+
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
+
+  @PrePersist
+  public void prePersist() {
+    createdAt = Instant.now();
+  }
+
+  @PreUpdate
+  public void preUpdate() {
+    updatedAt = Instant.now();
   }
 
   @Override
