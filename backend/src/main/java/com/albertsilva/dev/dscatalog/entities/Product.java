@@ -32,6 +32,7 @@ public class Product implements Serializable {
 
   @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
   private Instant date;
+  private boolean active;
 
   @ManyToMany
   @JoinTable(name = "tb_product_category", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
@@ -40,13 +41,14 @@ public class Product implements Serializable {
   public Product() {
   }
 
-  public Product(Long id, String name, String description, Double price, String imgUrl, Instant date) {
+  public Product(Long id, String name, String description, Double price, String imgUrl, Instant date, boolean active) {
     this.id = id;
     this.name = name;
     this.description = description;
     this.price = price;
     this.imgUrl = imgUrl;
     this.date = date;
+    this.active = active;
   }
 
   public Long getId() {
@@ -99,6 +101,14 @@ public class Product implements Serializable {
 
   public Set<Category> getCategories() {
     return categories;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
   }
 
   @Override
