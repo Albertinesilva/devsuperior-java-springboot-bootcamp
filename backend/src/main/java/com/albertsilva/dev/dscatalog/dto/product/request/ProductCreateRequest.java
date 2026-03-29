@@ -4,12 +4,12 @@ import java.time.Instant;
 import java.util.List;
 
 public record ProductCreateRequest(
-    String name,
-    String description,
-    Boolean active,
-    Double price,
-    String imgUrl,
-    Instant date,
-    List<Long> categoryIds) {
+        String name,
+        String description,
+        Boolean active,
+        Double price,
+        String imgUrl,
+        Instant date,
+        List<Long> categoryIds) {
 
 }
