@@ -24,6 +24,24 @@ import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundExcepti
 
 import jakarta.persistence.EntityNotFoundException;
 
+/**
+ * Serviço responsável pelas operações de negócio relacionadas à entidade
+ * {@link Product}.
+ *
+ * <p>
+ * Gerencia produtos e sua relação com categorias, incluindo
+ * regras de associação entre entidades.
+ * </p>
+ *
+ * <p>
+ * <b>Responsabilidades:</b>
+ * </p>
+ * <ul>
+ * <li>CRUD de produtos</li>
+ * <li>Mapeamento de categorias</li>
+ * <li>Conversão entre DTOs e entidades</li>
+ * </ul>
+ */
 @Service
 public class ProductService {
 
@@ -40,6 +58,12 @@ public class ProductService {
     this.productMapper = productMapper;
   }
 
+  /**
+   * Retorna uma lista paginada de produtos.
+   *
+   * @param pageable informações de paginação
+   * @return página de {@link ProductResponse}
+   */
   @Transactional(readOnly = true)
   public Page<ProductResponse> findAllPaged(Pageable pageable) {
     logger.debug("Buscando produtos paginados - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
@@ -48,6 +72,13 @@ public class ProductService {
     return productMapper.toResponsePage(products);
   }
 
+  /**
+   * Busca um produto pelo ID, incluindo suas categorias.
+   *
+   * @param id identificador do produto
+   * @return detalhes completos do produto
+   * @throws ResourceNotFoundException caso o produto não exista
+   */
   @Transactional(readOnly = true)
   public ProductDetailsResponse findById(Long id) {
     logger.debug("Buscando produto por id: {}", id);
@@ -60,6 +91,26 @@ public class ProductService {
     return productMapper.toDetailsResponse(entity);
   }
 
+  /**
+   * Insere um novo produto no sistema.
+   *
+   * <p>
+   * Além dos dados básicos, realiza o vínculo com categorias
+   * através da lista de IDs ({@code categoryIds}).
+   * </p>
+   *
+   * <p>
+   * <b>Importante para iniciantes:</b>
+   * </p>
+   * <ul>
+   * <li>O JSON NÃO envia objetos de categoria</li>
+   * <li>Envia apenas os IDs</li>
+   * <li>O backend faz o relacionamento</li>
+   * </ul>
+   *
+   * @param productCreateRequest dados do produto
+   * @return produto criado
+   */
   @Transactional
   public ProductResponse insert(ProductCreateRequest productCreateRequest) {
     logger.debug("Inserindo novo produto - dados: {}", productCreateRequest);
@@ -70,6 +121,24 @@ public class ProductService {
     return productMapper.toResponse(entity);
   }
 
+  /**
+   * Atualiza um produto existente.
+   *
+   * <p>
+   * A atualização é parcial e permite também atualizar
+   * as categorias associadas.
+   * </p>
+   *
+   * <p>
+   * Se {@code categoryIds} for informado, as categorias atuais
+   * são substituídas pelas novas.
+   * </p>
+   *
+   * @param id  identificador do produto
+   * @param dto dados para atualização
+   * @return produto atualizado
+   * @throws ResourceNotFoundException caso o produto não exista
+   */
   @Transactional
   public ProductResponse update(Long id, ProductUpdateRequest dto) {
     logger.debug("Atualizando produto. id: {}", id);
@@ -93,6 +162,17 @@ public class ProductService {
     }
   }
 
+  /**
+   * Remove um produto do sistema.
+   *
+   * <p>
+   * Valida existência antes da exclusão.
+   * </p>
+   *
+   * @param id identificador do produto
+   * @throws ResourceNotFoundException se não existir
+   * @throws DatabaseException         em caso de violação de integridade
+   */
   @Transactional
   public void delete(Long id) {
     logger.debug("Deletando produto. id: {}", id);
@@ -113,6 +193,30 @@ public class ProductService {
     }
   }
 
+  /**
+   * Realiza o mapeamento entre produto e categorias.
+   *
+   * <p>
+   * <b>Fluxo interno:</b>
+   * </p>
+   * <ol>
+   * <li>Remove todas as categorias atuais do produto</li>
+   * <li>Busca cada categoria pelo ID</li>
+   * <li>Adiciona ao produto</li>
+   * </ol>
+   *
+   * <p>
+   * <b>Importante:</b>
+   * </p>
+   * <ul>
+   * <li>O relacionamento é controlado pelo backend</li>
+   * <li>Evita inconsistência de dados</li>
+   * <li>Segue padrão REST correto</li>
+   * </ul>
+   *
+   * @param entity      produto
+   * @param categoryIds lista de IDs de categorias
+   */
   private void mapCategories(Product entity, List<Long> categoryIds) {
     entity.getCategories().clear();
 

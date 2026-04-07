@@ -14,11 +14,64 @@ import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundExcepti
 
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Classe responsável pelo tratamento global de exceções da API.
+ *
+ * <p>
+ * Utiliza a anotação {@link RestControllerAdvice} para interceptar exceções
+ * lançadas em qualquer camada da aplicação (principalmente Service) e
+ * convertê-las em respostas HTTP padronizadas.
+ * </p>
+ *
+ * <p>
+ * <b>Objetivo:</b>
+ * </p>
+ * <ul>
+ * <li>Centralizar o tratamento de erros</li>
+ * <li>Evitar duplicação de código nos controllers</li>
+ * <li>Padronizar o retorno de erro da API</li>
+ * </ul>
+ *
+ * <p>
+ * <b>Formato de resposta:</b>
+ * </p>
+ * 
+ * <pre>
+ * {
+ *   "timestamp": "...",
+ *   "status": 404,
+ *   "error": "Resource not found",
+ *   "message": "...",
+ *   "path": "/endpoint"
+ * }
+ * </pre>
+ */
 @RestControllerAdvice
 public class ControllerExceptionHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(ControllerExceptionHandler.class);
 
+  /**
+   * Trata exceções do tipo {@link ResourceNotFoundException}.
+   *
+   * <p>
+   * Essa exceção ocorre quando um recurso não é encontrado no sistema,
+   * como por exemplo:
+   * </p>
+   * <ul>
+   * <li>Buscar um ID inexistente</li>
+   * <li>Atualizar um recurso que não existe</li>
+   * <li>Deletar um recurso inexistente</li>
+   * </ul>
+   *
+   * <p>
+   * Retorna um erro HTTP 404 (Not Found).
+   * </p>
+   *
+   * @param e       exceção lançada
+   * @param request requisição HTTP atual
+   * @return resposta padronizada contendo detalhes do erro
+   */
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<StandardError> entityNotFound(ResourceNotFoundException e, HttpServletRequest request) {
     HttpStatus status = HttpStatus.NOT_FOUND;
@@ -34,6 +87,31 @@ public class ControllerExceptionHandler {
     return ResponseEntity.status(status).body(err);
   }
 
+  /**
+   * Trata exceções do tipo {@link DatabaseException}.
+   *
+   * <p>
+   * Essa exceção representa erros relacionados ao banco de dados,
+   * como por exemplo:
+   * </p>
+   * <ul>
+   * <li>Violação de integridade referencial</li>
+   * <li>Tentativa de deletar entidade com relacionamento</li>
+   * </ul>
+   *
+   * <p>
+   * Retorna um erro HTTP 400 (Bad Request).
+   * </p>
+   *
+   * <p>
+   * <b>Observação:</b>
+   * </p>
+   * O log inclui o stack trace completo para facilitar debugging.
+   *
+   * @param e       exceção lançada
+   * @param request requisição HTTP atual
+   * @return resposta padronizada contendo detalhes do erro
+   */
   @ExceptionHandler(DatabaseException.class)
   public ResponseEntity<StandardError> database(DatabaseException e, HttpServletRequest request) {
     HttpStatus status = HttpStatus.BAD_REQUEST;

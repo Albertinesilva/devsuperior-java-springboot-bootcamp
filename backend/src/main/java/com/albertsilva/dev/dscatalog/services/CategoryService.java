@@ -19,6 +19,26 @@ import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundExcepti
 
 import jakarta.persistence.EntityNotFoundException;
 
+/**
+ * Serviço responsável pelas operações de negócio relacionadas à entidade
+ * {@link Category}.
+ *
+ * <p>
+ * Esta classe atua como camada intermediária entre o Controller e o Repository,
+ * aplicando regras de negócio, controle transacional e tratamento de exceções.
+ * </p>
+ *
+ * <p>
+ * <b>Responsabilidades:</b>
+ * </p>
+ * <ul>
+ * <li>Buscar categorias (simples e paginadas)</li>
+ * <li>Criar novas categorias</li>
+ * <li>Atualizar categorias existentes</li>
+ * <li>Remover categorias</li>
+ * <li>Buscar por nome (filtro)</li>
+ * </ul>
+ */
 @Service
 public class CategoryService {
 
@@ -32,6 +52,17 @@ public class CategoryService {
     this.categoryMapper = categoryMapper;
   }
 
+  /**
+   * Retorna uma lista paginada de categorias.
+   *
+   * <p>
+   * Utiliza o recurso de paginação do Spring Data para evitar
+   * carregamento excessivo de dados na memória.
+   * </p>
+   *
+   * @param pageable informações de paginação (página, tamanho, ordenação)
+   * @return página contendo {@link CategoryResponse}
+   */
   @Transactional(readOnly = true)
   public Page<CategoryResponse> findAllPaged(Pageable pageable) {
     logger.debug("Buscando categorias paginadas - page: {}, size: {}", pageable.getPageNumber(),
@@ -39,6 +70,18 @@ public class CategoryService {
     return categoryMapper.toResponsePage(categoryRepository.findAll(pageable));
   }
 
+  /**
+   * Busca uma categoria pelo seu ID.
+   *
+   * <p>
+   * Caso a categoria não exista, uma exceção
+   * {@link ResourceNotFoundException} será lançada.
+   * </p>
+   *
+   * @param id identificador da categoria
+   * @return dados da categoria
+   * @throws ResourceNotFoundException caso o ID não exista
+   */
   @Transactional(readOnly = true)
   public CategoryResponse findById(Long id) {
     logger.debug("Buscando categoria por id: {}", id);
@@ -53,6 +96,16 @@ public class CategoryService {
     return categoryMapper.toResponse(entity);
   }
 
+  /**
+   * Insere uma nova categoria no sistema.
+   *
+   * <p>
+   * O DTO de entrada é convertido para entidade e persistido no banco.
+   * </p>
+   *
+   * @param categoryCreateRequest dados da categoria a ser criada
+   * @return categoria criada em formato de resposta
+   */
   @Transactional
   public CategoryResponse insert(CategoryCreateRequest categoryCreateRequest) {
     logger.debug("Inserindo nova categoria - dados: {}", categoryCreateRequest);
@@ -64,6 +117,23 @@ public class CategoryService {
     return categoryMapper.toResponse(entity);
   }
 
+  /**
+   * Atualiza os dados de uma categoria existente.
+   *
+   * <p>
+   * A atualização é parcial: apenas campos não nulos são modificados.
+   * </p>
+   *
+   * <p>
+   * Utiliza {@code getReferenceById} para obter uma referência da entidade,
+   * evitando uma consulta completa ao banco inicialmente.
+   * </p>
+   *
+   * @param id                    identificador da categoria
+   * @param categoryUpdateRequest dados para atualização
+   * @return categoria atualizada
+   * @throws ResourceNotFoundException caso a categoria não exista
+   */
   @Transactional
   public CategoryResponse update(Long id, CategoryUpdateRequest categoryUpdateRequest) {
     logger.debug("Atualizando categoria. id: {}", id);
@@ -82,6 +152,23 @@ public class CategoryService {
     }
   }
 
+  /**
+   * Remove uma categoria do sistema.
+   *
+   * <p>
+   * Antes de deletar, valida se a categoria existe.
+   * </p>
+   *
+   * <p>
+   * Possíveis cenários de erro:
+   * </p>
+   * <ul>
+   * <li>Categoria não encontrada → {@link ResourceNotFoundException}</li>
+   * <li>Violação de integridade → {@link DatabaseException}</li>
+   * </ul>
+   *
+   * @param id identificador da categoria
+   */
   @Transactional
   public void delete(Long id) {
     logger.debug("Deletando categoria. id: {}", id);
@@ -102,6 +189,17 @@ public class CategoryService {
     }
   }
 
+  /**
+   * Realiza busca de categorias pelo nome (case insensitive).
+   *
+   * <p>
+   * Permite busca parcial utilizando "contains".
+   * </p>
+   *
+   * @param name     termo de busca
+   * @param pageable paginação
+   * @return página de categorias encontradas
+   */
   @Transactional(readOnly = true)
   public Page<CategoryResponse> searchByName(String name, Pageable pageable) {
     logger.debug("Buscando categorias por nome. termo: {}", name);
