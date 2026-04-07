@@ -1,6 +1,6 @@
 ## 🧩 Capítulo 01 — Operações CRUD com Spring Boot
 
-<p align="center">
+<p style="text-align: justify;">
   <em>Este capítulo apresenta a construção de uma API backend utilizando `Java` e `Spring Boot`, com foco na implementação de operações de `CRUD` (Create, Read, Update e Delete) para gerenciamento de produtos e categorias.</em>
 </p>
 
