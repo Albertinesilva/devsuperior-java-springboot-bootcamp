@@ -72,4 +72,10 @@ public class CategoryService {
       throw new DatabaseException("Integrity violation: cannot delete category with related entities");
     }
   }
+
+  @Transactional(readOnly = true)
+  public Page<CategoryResponse> searchByName(String name, Pageable pageable) {
+    Page<Category> categories = categoryRepository.findByNameContainingIgnoreCase(name, pageable);
+    return categoryMapper.toResponsePage(categories);
+  }
 }

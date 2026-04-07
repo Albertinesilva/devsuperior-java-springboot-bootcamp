@@ -60,6 +60,11 @@ public class CategoryController {
     return ResponseEntity.ok(categoryService.findById(id));
   }
 
+  @GetMapping("/search")
+  public ResponseEntity<Page<CategoryResponse>> search(@RequestParam String name, Pageable pageable) {
+    return ResponseEntity.ok(categoryService.searchByName(name, pageable));
+  }
+
   @PatchMapping(value = "/{id}")
   public ResponseEntity<CategoryResponse> update(@PathVariable Long id,
       @RequestBody CategoryUpdateRequest categoryUpdateRequest) {
