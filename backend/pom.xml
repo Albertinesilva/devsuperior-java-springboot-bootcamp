@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.11</version>
+		<version>3.5.13</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.albertsilva.dev</groupId>
@@ -14,18 +14,31 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>DSCatalog Backend</name>
 	<description>Backend REST API for the DSCatalog project built with Spring Boot</description>
-	<url />
+	<url>https://github.com/Albertinesilva/devsuperior-java-springboot-bootcamp</url>
+
 	<licenses>
-		<license />
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
 	</licenses>
+
 	<developers>
-		<developer />
+		<developer>
+			<id>albert</id>
+			<name>Albert Silva de Jesus</name>
+			<email>albertinesilva@.17gmail.com</email>
+			<organization>Personal Project</organization>
+			<organizationUrl>https://github.com/Albertinesilva</organizationUrl>
+		</developer>
 	</developers>
+
 	<scm>
-		<connection />
-		<developerConnection />
-		<tag />
-		<url />
+		<connection>scm:git:git://github.com/Albertinesilva/devsuperior-java-springboot-bootcamp.git</connection>
+		<developerConnection>scm:git:ssh://github.com:Albertinesilva/devsuperior-java-springboot-bootcamp.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/Albertinesilva/devsuperior-java-springboot-bootcamp</url>
 	</scm>
 	<properties>
 		<java.version>17</java.version>
@@ -80,6 +93,13 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- API Documentation -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.16</version>
+		</dependency>
+
 		<!-- Testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -115,6 +135,7 @@
 				<configuration>
 					<source>17</source>
 					<encoding>UTF-8</encoding>
+					<failOnError>false</failOnError>
 				</configuration>
 			</plugin>
 		</plugins>
