@@ -1,0 +1,15 @@
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Books', 'Books and literature', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Electronics', 'Electronic devices and gadgets', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Computers', 'Computers, laptops and accessories', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Home Appliances', 'Appliances for home use', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Furniture', 'Home and office furniture', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Toys', 'Toys and games for children', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Clothing', 'Men and women clothing', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Shoes', 'Footwear and sneakers', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Sports', 'Sports equipment and accessories', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Health', 'Health and personal care products', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Beauty', 'Beauty and cosmetics products', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Automotive', 'Car parts and automotive accessories', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Garden', 'Garden and outdoor products', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Pet Supplies', 'Products for pets and animals', true, NOW(), NOW());
+INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Office Supplies', 'Office materials and supplies', true, NOW(), NOW());
