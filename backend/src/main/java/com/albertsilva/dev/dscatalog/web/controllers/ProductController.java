@@ -16,6 +16,8 @@ import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.services.ProductService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * Controller responsável por expor os endpoints REST da entidade Product.
  *
@@ -46,6 +48,7 @@ import com.albertsilva.dev.dscatalog.services.ProductService;
  * <li>O backend resolve o relacionamento</li>
  * </ul>
  */
+@Tag(name = "Produtos", description = "Contém todas as operações aos recursos para cadastro, edição e leitura de um produto.")
 @RestController
 @RequestMapping("/api/v1/products")
 public class ProductController {

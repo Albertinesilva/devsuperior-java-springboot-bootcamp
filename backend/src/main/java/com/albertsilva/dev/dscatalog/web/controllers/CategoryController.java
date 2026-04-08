@@ -17,6 +17,8 @@ import com.albertsilva.dev.dscatalog.dto.category.request.CategoryUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.services.CategoryService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * Controller responsável por expor os endpoints REST da entidade Category.
  *
@@ -49,6 +51,7 @@ import com.albertsilva.dev.dscatalog.services.CategoryService;
  * <li>DELETE → remoção</li>
  * </ul>
  */
+@Tag(name = "Categorias", description = "Contém todas as operações aos recursos para cadastro, edição e leitura de uma categoria.")
 @RestController
 @RequestMapping("/api/v1/categories")
 public class CategoryController {
