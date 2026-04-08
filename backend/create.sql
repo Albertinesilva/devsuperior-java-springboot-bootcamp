@@ -35,6 +35,8 @@
        add constraint FKgbof0jclmaf8wn2alsoexxq3u 
        foreign key (product_id) 
        references tb_product;
+
+--- Data seeding for tb_category
 INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Books', 'Books and literature', true, NOW(), NOW());
 INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Electronics', 'Electronic devices and gadgets', true, NOW(), NOW());
 INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Computers', 'Computers, laptops and accessories', true, NOW(), NOW());
@@ -50,6 +52,8 @@ INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUE
 INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Garden', 'Garden and outdoor products', true, NOW(), NOW());
 INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Pet Supplies', 'Products for pets and animals', true, NOW(), NOW());
 INSERT INTO tb_category(name, description, active, created_at, updated_at) VALUES ('Office Supplies', 'Office materials and supplies', true, NOW(), NOW());
+
+--- Data seeding for tb_product
 INSERT INTO tb_product (name, price, date, description, active, img_url) VALUES ('The Lord of the Rings', 90.5, TIMESTAMP WITH TIME ZONE '2020-07-13T20:50:07.12345Z', 'Clássico da literatura de fantasia que narra a jornada épica na Terra Média.', true, 'https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg');
 INSERT INTO tb_product (name, price, date, description, active, img_url) VALUES ('Smart TV', 2190.0, TIMESTAMP WITH TIME ZONE '2020-07-14T10:00:00Z', 'Smart TV com alta resolução, acesso a streaming e conectividade Wi-Fi.', true, 'https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/2-big.jpg');
 INSERT INTO tb_product (name, price, date, description, active, img_url) VALUES ('Macbook Pro', 1250.0, TIMESTAMP WITH TIME ZONE '2020-07-14T10:00:00Z', 'Notebook de alto desempenho ideal para desenvolvimento e produtividade.', true, 'https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/3-big.jpg');
@@ -75,6 +79,8 @@ INSERT INTO tb_product (name, price, date, description, active, img_url) VALUES 
 INSERT INTO tb_product (name, price, date, description, active, img_url) VALUES ('PC Gamer Min', 2250.0, TIMESTAMP WITH TIME ZONE '2020-07-14T10:00:00Z', 'PC gamer compacto e potente.', true, 'https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/23-big.jpg');
 INSERT INTO tb_product (name, price, date, description, active, img_url) VALUES ('PC Gamer Boo', 2350.0, TIMESTAMP WITH TIME ZONE '2020-07-14T10:00:00Z', 'PC gamer premium com alto desempenho gráfico.', true, 'https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/24-big.jpg');
 INSERT INTO tb_product (name, price, date, description, active, img_url) VALUES ('PC Gamer Foo', 4170.0, TIMESTAMP WITH TIME ZONE '2020-07-14T10:00:00Z', 'PC gamer de altíssimo desempenho para jogos em 4K.', true, 'https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/25-big.jpg');
+
+--- Data seeding for tb_product_category
 INSERT INTO tb_product_category (product_id, category_id) VALUES (1, 1); -- The Lord of the Rings;
 INSERT INTO tb_product_category (product_id, category_id) VALUES (5, 1); -- Rails for Dummies;
 INSERT INTO tb_product_category (product_id, category_id) VALUES (2, 2); -- Smart TV;
