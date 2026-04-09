@@ -492,3 +492,212 @@ Remove uma categoria do sistema.
 ```
 > [!IMPORTANT]
 > A API segue boas práticas REST, utilizando corretamente os métodos HTTP (POST, GET, PATCH, DELETE), códigos de status e padronização de respostas, garantindo previsibilidade e facilidade de integração.
+
+---
+### 📦 Produtos (`/api/v1/products`)
+
+| Método | Endpoint              | Descrição                                   |
+|--------|----------------------|----------------------------------------------|
+| POST   | `/products`          | Cria um novo produto                         |
+| GET    | `/products`          | Lista produtos (paginado)                    |
+| GET    | `/products/{id}`     | Busca produto por ID (detalhado)             |
+| PATCH  | `/products/{id}`     | Atualiza parcialmente um produto             |
+| DELETE | `/products/{id}`     | Remove um produto                            |
+
+---
+
+## 📌 Endpoints — Produtos
+
+Base URL: `/api/v1/products`
+
+Esta seção documenta todos os endpoints relacionados ao recurso **Produto**, incluindo exemplos de requisição e resposta.
+
+---
+
+### 📥 Criar Produto
+
+**POST** `/api/v1/products`
+
+Cria um novo produto no sistema.
+
+#### 🔸 Request Body
+```json
+{
+  "name": "Notebook Gamer",
+  "description": "Notebook de alta performance",
+  "price": 4500.0,
+  "imgUrl": "https://image.com/notebook.png",
+  "date": "2025-01-01T10:00:00Z",
+  "active": true,
+  "categoryIds": [1, 2]
+}
+```
+> 💡 As categorias devem ser enviadas apenas como IDs (categoryIds)
+> 💡 O backend é responsável por resolver o relacionamento com categorias
+
+### 🔸 Response (201 Created)
+```json
+{
+  "id": 1,
+  "name": "Notebook Gamer",
+  "description": "Notebook de alta performance",
+  "price": 4500.0,
+  "imgUrl": "https://image.com/notebook.png",
+  "date": "2025-01-01T10:00:00Z",
+  "categories": []
+}
+```
+
+### 🔸 Headers
+```http
+Location: /api/v1/products/1
+```
+
+### 📄 Listar Produtos (Paginado)
+
+**GET** `/api/v1/products`
+
+Retorna uma lista paginada de produtos.
+
+### 🔸 Query Params
+| Parâmetro | Tipo   | Descrição                |
+| --------- | ------ | ------------------------ |
+| page      | int    | Número da página         |
+| size      | int    | Quantidade de registros  |
+| sort      | string | Ordenação (ex: name,asc) |
+
+### 🔸 Exemplo
+```http
+GET /api/v1/products?page=0&size=10&sort=name,asc
+```
+
+### 🔸 Response (200 OK)
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Notebook Gamer",
+      "description": "Notebook de alta performance",
+      "price": 4500.0,
+      "imgUrl": "https://image.com/notebook.png",
+      "date": "2025-01-01T10:00:00Z",
+      "categories": []
+    }
+  ],
+  "totalElements": 1,
+  "totalPages": 1,
+  "size": 10,
+  "number": 0
+}
+```
+> 🔐 Endpoint protegido (requer autenticação — ROLE ADMIN)
+
+---
+### 🔍 Buscar Produto por ID
+
+**GET** `/api/v1/products/{id}`
+
+Retorna os detalhes completos de um produto, incluindo suas categorias.
+
+### 🔸 Response (200 OK)
+```json
+{
+  "id": 1,
+  "name": "Notebook Gamer",
+  "description": "Notebook de alta performance",
+  "price": 4500.0,
+  "imgUrl": "https://image.com/notebook.png",
+  "date": "2025-01-01T10:00:00Z",
+  "categories": [
+    {
+      "id": 1,
+      "name": "Eletrônicos",
+      "description": "Produtos eletrônicos",
+      "active": true
+    }
+  ]
+}
+```
+
+### 🔸 Erros possíveis
+```json
+{
+  "timestamp": "2026-04-09T18:42:25.491392800Z",
+  "status": 404,
+  "error": "Resource not found",
+  "message": "Entity not found id: 100",
+  "path": "/api/v1/products/100"
+}
+```
+
+---
+### ✏️ Atualizar Produto (Parcial)
+
+**PATCH** `/api/v1/products/{id}`
+
+Atualiza parcialmente os dados de um produto.
+
+### 🔸 Request Body
+```json
+{
+  "name": "Notebook Atualizado",
+  "price": 4200.0,
+  "categoryIds": [2, 3]
+}
+```
+> 💡 Apenas campos enviados são atualizados
+> 💡 Campos null são ignorados
+> 💡 Se categoryIds for informado, as categorias serão substituídas
+
+🔸 Response (200 OK)
+```json
+{
+  "id": 1,
+  "name": "Notebook Atualizado",
+  "description": "Notebook de alta performance",
+  "price": 4200.0,
+  "imgUrl": "https://image.com/notebook.png",
+  "date": "2025-01-01T10:00:00Z",
+  "categories": []
+}
+```
+
+---
+### ❌ Remover Produto
+
+**DELETE** `/api/v1/products/{id}`
+
+Remove um produto do sistema.
+
+### 🔸 Response
+- 204 No Content
+
+## 🔸 Erros possíveis
+- 404 Not Found
+- 400 Bad Request (violação de integridade)
+
+⚠️ Padrão de Erro
+
+Todos os erros seguem um padrão unificado:
+
+```json
+{
+  "timestamp": "2026-04-09T18:50:14.708743400Z",
+  "status": 404,
+  "error": "Resource not found",
+  "message": "Entity not found id: 100",
+  "path": "/api/v1/products/100"
+}
+```
+```json
+{
+  "timestamp": "2026-04-09T18:50:44.722862600Z",
+  "status": 400,
+  "error": "Database error",
+  "message": "Cannot delete resource because it has related entities",
+  "path": "/api/v1/products/1"
+}
+```
+> [!IMPORTANT]
+> A API segue boas práticas REST, utilizando corretamente os métodos HTTP (POST, GET, PATCH, DELETE), códigos de status e padronização de respostas, garantindo previsibilidade e facilidade de integração.
