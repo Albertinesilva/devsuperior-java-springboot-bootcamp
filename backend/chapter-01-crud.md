@@ -8,10 +8,10 @@
 
 O projeto **DSCatalog** foi estruturado seguindo boas práticas de desenvolvimento, adotando **arquitetura em camadas** e separação clara de responsabilidades. Além das operações básicas de CRUD, foram implementados conceitos importantes como:
 
-- Uso de **DTOs** para comunicação entre camadas, utilizando **records do Java** para estruturas imutáveis de dados;  
-- Mapeamento com classes dedicadas (**Mapper**);  
-- Tratamento de **exceções customizadas**;  
-- Padronização das respostas da API;  
+- Uso de **DTOs** para comunicação entre camadas, utilizando **records do Java** para estruturas imutáveis de dados;
+- Mapeamento com classes dedicadas (**Mapper**);
+- Tratamento de **exceções customizadas**;
+- Padronização das respostas da API;
 - Mecanismo global de tratamento de erros, garantindo robustez e rastreabilidade.
 
 A aplicação contempla a organização em camadas: `controller`, `service` e `repository`, além da camada de DTOs que garante maior controle sobre os dados expostos.
@@ -20,42 +20,42 @@ A aplicação contempla a organização em camadas: `controller`, `service` e `r
 
 ## 🎯 Objetivos do Capítulo
 
-1. **Implementação de operações CRUD**  
-   - Criação, leitura, atualização e exclusão de **produtos** e **categorias** via API REST.  
-   - Endpoints bem estruturados: `GET`, `POST`, `PATCH`, `DELETE` com status HTTP adequado.  
-   - Serviços que fazem mapeamento **DTO ↔ entidade** usando **records** e **Mapper**.  
+1. **Implementação de operações CRUD**
+   - Criação, leitura, atualização e exclusão de **produtos** e **categorias** via API REST.
+   - Endpoints bem estruturados: `GET`, `POST`, `PATCH`, `DELETE` com status HTTP adequado.
+   - Serviços que fazem mapeamento **DTO ↔ entidade** usando **records** e **Mapper**.
    - Validação e tratamento de exceções (`ResourceNotFoundException`, `DatabaseException`) com logs detalhados.
 
-2. **Paginação e filtragem**  
-   - Uso de `Pageable` para controlar páginas, tamanho e ordenação.  
+2. **Paginação e filtragem**
+   - Uso de `Pageable` para controlar páginas, tamanho e ordenação.
    - Consultas case-insensitive e parciais (`findByNameContainingIgnoreCase`) para melhorar experiência do usuário.
 
-3. **Mapeamento de relacionamentos**  
-   - Recebendo apenas **IDs de categorias** no request e resolvendo vínculos no backend.  
+3. **Mapeamento de relacionamentos**
+   - Recebendo apenas **IDs de categorias** no request e resolvendo vínculos no backend.
    - Atualização parcial de categorias, sem sobrescrever dados não enviados.
 
-4. **Ambientes de desenvolvimento e testes**  
+4. **Ambientes de desenvolvimento e testes**
 
-| Aspecto                      | Ambiente de Testes (`test`)                       | Ambiente de Desenvolvimento (`dev`)                   |
-|-------------------------------|--------------------------------------------------|------------------------------------------------------|
-| Banco de dados                | H2 in-memory (efêmero)                           | PostgreSQL local (persistente)                      |
-| Console                       | `/h2-console` para inspeção manual              | Console SQL exibindo queries                         |
-| Migrations (Flyway)           | Desativado                                      | Ativo (`db/migration/schema` + `db/migration/data`) |
-| Logs                          | DEBUG/TRACE, JSON, `logs/test/dscatalog-test.log` | DEBUG/TRACE, JSON, `logs/dev/dscatalog-dev.log`     |
-| Banner                        | N/A                                             | Banner personalizado (`banner-dev.txt`)             |
-| Objetivo                       | Testes isolados, rápidos e reproduzíveis        | Desenvolvimento realista com dados persistentes     |
-| Observações                    | Banco efêmero, reset a cada execução            | Controle de schema, rastreabilidade completa        |
+| Aspecto             | Ambiente de Testes (`test`)                       | Ambiente de Desenvolvimento (`dev`)                 |
+| ------------------- | ------------------------------------------------- | --------------------------------------------------- |
+| Banco de dados      | H2 in-memory (efêmero)                            | PostgreSQL local (persistente)                      |
+| Console             | `/h2-console` para inspeção manual                | Console SQL exibindo queries                        |
+| Migrations (Flyway) | Desativado                                        | Ativo (`db/migration/schema` + `db/migration/data`) |
+| Logs                | DEBUG/TRACE, JSON, `logs/test/dscatalog-test.log` | DEBUG/TRACE, JSON, `logs/dev/dscatalog-dev.log`     |
+| Banner              | N/A                                               | Banner personalizado (`banner-dev.txt`)             |
+| Objetivo            | Testes isolados, rápidos e reproduzíveis          | Desenvolvimento realista com dados persistentes     |
+| Observações         | Banco efêmero, reset a cada execução              | Controle de schema, rastreabilidade completa        |
 
 > [!IMPORTANT]
 > Essa separação garante testes **isolados, rápidos e reproduzíveis**, enquanto o desenvolvimento ocorre em ambiente realista com dados persistentes e migrations. Reflete boas práticas de engenharia de software.
 
-5. **Documentação da API e código**  
-   - **OpenAPI/Swagger** para documentação interativa;  
+5. **Documentação da API e código**
+   - **OpenAPI/Swagger** para documentação interativa;
    - **JavaDocs** explicando responsabilidades de controllers e services.
 
-6. **Boas práticas de código e arquitetura**  
-   - Estrutura clara em **Controller, Service e Repository**;  
-   - Uso de **logger** para monitoramento e rastreabilidade;  
+6. **Boas práticas de código e arquitetura**
+   - Estrutura clara em **Controller, Service e Repository**;
+   - Uso de **logger** para monitoramento e rastreabilidade;
    - Tratamento transacional adequado (`@Transactional`) para consistência de dados.
 
 ---
@@ -124,50 +124,56 @@ A aplicação **DSCatalog** segue a arquitetura tradicional **Controller → Ser
 
 ## Padrão de Camadas
 
-- Consiste em organizar os componentes do sistema em **partes denominadas camadas**.  
-- Cada camada possui **responsabilidade específica**.  
+- Consiste em organizar os componentes do sistema em **partes denominadas camadas**.
+- Cada camada possui **responsabilidade específica**.
 - Componentes de uma camada só podem depender de **componentes da mesma camada** ou da camada **mais abaixo**.
 
 ## Descrição das Camadas e Responsabilidades
 
 ### Controller
-- Responde interações do usuário (no caso de API REST, as requisições HTTP).  
-- Recebe os dados do front-end, encaminha para o service e retorna respostas padronizadas.  
+
+- Responde interações do usuário (no caso de API REST, as requisições HTTP).
+- Recebe os dados do front-end, encaminha para o service e retorna respostas padronizadas.
 
 ### Service
-- Realiza operações de negócio, cada método deve ter **significado relacionado ao negócio**.  
+
+- Realiza operações de negócio, cada método deve ter **significado relacionado ao negócio**.
 - Pode executar várias operações dentro de uma transação.  
-  *Exemplo:* `registrarPedido` → verificar estoque, salvar pedido, baixar estoque, enviar email.  
-- Manipula DTOs, valida regras de negócio e interage com o repository.  
+  _Exemplo:_ `registrarPedido` → verificar estoque, salvar pedido, baixar estoque, enviar email.
+- Manipula DTOs, valida regras de negócio e interage com o repository.
 
 ### Repository
-- Executa operações **individuais** de acesso ao banco de dados.  
-- Responsável pela persistência via **Spring Data JPA**.  
+
+- Executa operações **individuais** de acesso ao banco de dados.
+- Responsável pela persistência via **Spring Data JPA**.
 
 ### DTOs (Data Transfer Objects)
-- Objetos **simples**, usados apenas para transferência de dados.  
-- Não são gerenciados por ORM / banco de dados.  
-- Podem conter outros DTOs **aninhados**, mas **nunca devem conter entities**.  
+
+- Objetos **simples**, usados apenas para transferência de dados.
+- Não são gerenciados por ORM / banco de dados.
+- Podem conter outros DTOs **aninhados**, mas **nunca devem conter entities**.
 - Usos comuns:
   - Projeção de dados
   - Segurança (não expor dados sensíveis)
   - Economia de tráfego
   - Flexibilidade: diferentes representações dos dados
     - Combobox: `{ id: number, nome: string }`
-    - Relatório detalhado: `{ id, nome, salario, email, telefones[] }`  
+    - Relatório detalhado: `{ id, nome, salario, email, telefones[] }`
 
 ### Mapper
-- Converte entre **entities** do banco e **DTOs**, mantendo separação de responsabilidades.  
+
+- Converte entre **entities** do banco e **DTOs**, mantendo separação de responsabilidades.
 
 ### Exception Handler Global
-- Captura exceções em toda a aplicação e retorna respostas padronizadas em **JSON**, com mensagens claras e rastreabilidade.  
+
+- Captura exceções em toda a aplicação e retorna respostas padronizadas em **JSON**, com mensagens claras e rastreabilidade.
 
 ## Por que usar DTOs?
 
-- Separação clara de responsabilidades:  
-  - **Service e Repository:** foco em transações e monitoramento ORM  
-  - **Controller:** tráfego simples de dados  
-- Segurança, economia de tráfego e flexibilidade na API.  
+- Separação clara de responsabilidades:
+  - **Service e Repository:** foco em transações e monitoramento ORM
+  - **Controller:** tráfego simples de dados
+- Segurança, economia de tráfego e flexibilidade na API.
 - Facilita diferentes representações de dados para front-end e relatórios.
 
 > [!IMPORTANT]  
@@ -181,82 +187,84 @@ O projeto **DSCatalog** foi desenvolvido utilizando um conjunto moderno de tecno
 
 ### 📌 Stack Principal
 
-| Categoria            | Tecnologia                                      | Função                                                                 |
-|---------------------|--------------------------------------------------|------------------------------------------------------------------------|
-| Linguagem           | Java 17                                          | Desenvolvimento backend moderno com recursos atuais da linguagem      |
-| Framework           | Spring Boot 3.5.13                               | Estrutura principal da aplicação e gerenciamento de dependências      |
-| API REST            | Spring Web                                       | Criação de endpoints HTTP (RESTful APIs)                              |
-| Persistência        | Spring Data JPA                                  | Abstração para acesso a dados e integração com ORM                    |
-| ORM                 | Hibernate                                        | Mapeamento objeto-relacional (Entity ↔ Tabela)                        |
-| Validação           | Spring Boot Validation                           | Validação de dados de entrada (Bean Validation)                       |
+| Categoria    | Tecnologia             | Função                                                           |
+| ------------ | ---------------------- | ---------------------------------------------------------------- |
+| Linguagem    | Java 17                | Desenvolvimento backend moderno com recursos atuais da linguagem |
+| Framework    | Spring Boot 3.5.13     | Estrutura principal da aplicação e gerenciamento de dependências |
+| API REST     | Spring Web             | Criação de endpoints HTTP (RESTful APIs)                         |
+| Persistência | Spring Data JPA        | Abstração para acesso a dados e integração com ORM               |
+| ORM          | Hibernate              | Mapeamento objeto-relacional (Entity ↔ Tabela)                   |
+| Validação    | Spring Boot Validation | Validação de dados de entrada (Bean Validation)                  |
 
 ---
 
 ### 🗄️ Banco de Dados
 
-| Categoria            | Tecnologia        | Função                                                                 |
-|---------------------|------------------|------------------------------------------------------------------------|
-| Banco Principal     | PostgreSQL        | Banco relacional utilizado no ambiente de desenvolvimento              |
-| Banco de Testes     | H2 Database       | Banco em memória para testes rápidos e isolados                        |
-| Console DB          | H2 Console        | Interface web para inspeção de dados em ambiente de teste              |
+| Categoria       | Tecnologia  | Função                                                    |
+| --------------- | ----------- | --------------------------------------------------------- |
+| Banco Principal | PostgreSQL  | Banco relacional utilizado no ambiente de desenvolvimento |
+| Banco de Testes | H2 Database | Banco em memória para testes rápidos e isolados           |
+| Console DB      | H2 Console  | Interface web para inspeção de dados em ambiente de teste |
 
 ---
 
 ### 🔄 Migração e Versionamento de Banco
 
-| Tecnologia  | Função                                                                 |
-|-------------|------------------------------------------------------------------------|
-| Flyway      | Controle de versão do banco de dados (migrations de schema e dados)   |
+| Tecnologia | Função                                                              |
+| ---------- | ------------------------------------------------------------------- |
+| Flyway     | Controle de versão do banco de dados (migrations de schema e dados) |
 
 ---
 
 ### 📄 Documentação da API
 
-| Tecnologia                        | Função                                                                 |
-|----------------------------------|------------------------------------------------------------------------|
-| SpringDoc OpenAPI (Swagger UI)   | Geração automática de documentação interativa da API REST             |
-| JavaDocs                         | Documentação técnica do código, descrevendo responsabilidades, métodos e fluxos |
+| Tecnologia                     | Função                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| SpringDoc OpenAPI (Swagger UI) | Geração automática de documentação interativa da API REST                       |
+| JavaDocs                       | Documentação técnica do código, descrevendo responsabilidades, métodos e fluxos |
+
 > [!TIP]
 > A API conta com documentação automatizada via **Swagger/OpenAPI**, além de **JavaDocs** bem definidos nos controllers e services, facilitando o entendimento da lógica de negócio e manutenção do código.
+
 ---
 
 ### 🧪 Testes
 
-| Tecnologia                     | Função                                                |
-|--------------------------------|--------------------------------------------------------|
-| Spring Boot Starter Test       | Testes unitários e de integração                      |
+| Tecnologia               | Função                           |
+| ------------------------ | -------------------------------- |
+| Spring Boot Starter Test | Testes unitários e de integração |
 
 ---
 
 ### ⚙️ Ferramentas de Desenvolvimento
 
-| Ferramenta              | Função                                                                 |
-|------------------------|------------------------------------------------------------------------|
-| Spring Boot DevTools   | Hot reload e aumento de produtividade no desenvolvimento              |
-| IntelliJ IDEA         | IDE principal para desenvolvimento backend                           |
-| VS Code               | Editor auxiliar                                                      |
-| Postman               | Teste de endpoints e simulação de requisições HTTP                   |
-| pgAdmin               | Administração e gerenciamento do banco PostgreSQL                    |
+| Ferramenta           | Função                                                   |
+| -------------------- | -------------------------------------------------------- |
+| Spring Boot DevTools | Hot reload e aumento de produtividade no desenvolvimento |
+| IntelliJ IDEA        | IDE principal para desenvolvimento backend               |
+| VS Code              | Editor auxiliar                                          |
+| Postman              | Teste de endpoints e simulação de requisições HTTP       |
+| pgAdmin              | Administração e gerenciamento do banco PostgreSQL        |
 
 ---
 
 ### 📦 Build e Gerenciamento
 
-| Tecnologia        | Função                                                |
-|------------------|--------------------------------------------------------|
-| Maven            | Gerenciamento de dependências e build do projeto      |
-| Maven Compiler   | Compilação com suporte ao Java 17                     |
-| Maven Javadoc    | Geração de documentação técnica do código             |
+| Tecnologia     | Função                                           |
+| -------------- | ------------------------------------------------ |
+| Maven          | Gerenciamento de dependências e build do projeto |
+| Maven Compiler | Compilação com suporte ao Java 17                |
+| Maven Javadoc  | Geração de documentação técnica do código        |
 
 ---
 
 ### 📊 Observabilidade e Logs
 
-| Tecnologia        | Função                                                                 |
-|------------------|------------------------------------------------------------------------|
-| Logback (Spring) | Gerenciamento de logs da aplicação                                     |
-| SLF4J            | Abstração de logging                                                   |
-| JSON Logging     | Logs estruturados para melhor rastreabilidade                         |
+| Tecnologia       | Função                                        |
+| ---------------- | --------------------------------------------- |
+| Logback (Spring) | Gerenciamento de logs da aplicação            |
+| SLF4J            | Abstração de logging                          |
+| JSON Logging     | Logs estruturados para melhor rastreabilidade |
 
 ---
 
@@ -264,6 +272,7 @@ O projeto **DSCatalog** foi desenvolvido utilizando um conjunto moderno de tecno
 > A escolha dessas tecnologias segue padrões amplamente adotados no mercado, garantindo **produtividade, manutenibilidade e escalabilidade**, além de alinhar o projeto com práticas profissionais utilizadas em aplicações corporativas.
 
 ---
+
 ## 🚀 API REST — Endpoints
 
 A API do **DSCatalog** expõe endpoints REST seguindo boas práticas de design, utilizando JSON como formato padrão de comunicação.
@@ -272,14 +281,14 @@ A API do **DSCatalog** expõe endpoints REST seguindo boas práticas de design, 
 
 ### 📦 Categorias (`/api/v1/categories`)
 
-| Método | Endpoint                  | Descrição                                 |
-|--------|--------------------------|--------------------------------------------|
-| POST   | `/categories`            | Cria uma nova categoria                   |
-| GET    | `/categories`            | Lista categorias (paginado)               |
-| GET    | `/categories/{id}`       | Busca categoria por ID                    |
-| GET    | `/categories/search`     | Busca categorias por nome                 |
-| PATCH  | `/categories/{id}`       | Atualiza parcialmente uma categoria       |
-| DELETE | `/categories/{id}`       | Remove uma categoria                      |
+| Método | Endpoint             | Descrição                           |
+| ------ | -------------------- | ----------------------------------- |
+| POST   | `/categories`        | Cria uma nova categoria             |
+| GET    | `/categories`        | Lista categorias (paginado)         |
+| GET    | `/categories/{id}`   | Busca categoria por ID              |
+| GET    | `/categories/search` | Busca categorias por nome           |
+| PATCH  | `/categories/{id}`   | Atualiza parcialmente uma categoria |
+| DELETE | `/categories/{id}`   | Remove uma categoria                |
 
 ---
 
@@ -298,6 +307,7 @@ Esta seção documenta todos os endpoints relacionados ao recurso **Categoria**,
 Cria uma nova categoria no sistema.
 
 #### 🔸 Request Body
+
 ```json
 {
   "name": "Eletrônicos",
@@ -305,7 +315,8 @@ Cria uma nova categoria no sistema.
   "active": true
 }
 ```
->💡 O campo active é opcional. Caso não seja informado, será definido como false.
+
+> 💡 O campo active é opcional. Caso não seja informado, será definido como false.
 
 ### 🔸 Response (201 Created)
 
@@ -317,12 +328,15 @@ Cria uma nova categoria no sistema.
   "active": true
 }
 ```
+
 ### 🔸 Headers
+
 ```
 Location: /api/v1/categories/1
 ```
 
 ---
+
 ### 📄 Listar Categorias (Paginado)
 
 **GET** `/api/v1/categories`
@@ -331,12 +345,12 @@ Retorna uma lista paginada de categorias.
 
 #### 🔸 Query Params
 
-| Parâmetro     | Tipo   | Default | Descrição                     |
-|--------------|--------|---------|-------------------------------|
-| page         | int    | 0       | Número da página              |
-| linesPerPage | int    | 12      | Quantidade de registros       |
-| orderBy      | string | name    | Campo de ordenação            |
-| direction    | string | ASC     | Direção (ASC ou DESC)         |
+| Parâmetro    | Tipo   | Default | Descrição               |
+| ------------ | ------ | ------- | ----------------------- |
+| page         | int    | 0       | Número da página        |
+| linesPerPage | int    | 12      | Quantidade de registros |
+| orderBy      | string | name    | Campo de ordenação      |
+| direction    | string | ASC     | Direção (ASC ou DESC)   |
 
 #### 🔸 Exemplo
 
@@ -362,9 +376,12 @@ GET /api/v1/categories?page=0&linesPerPage=10&orderBy=name&direction=ASC
   "number": 0
 }
 ```
-> 🔐 Endpoint protegido (requer autenticação — ROLE ADMIN)
+
+> 🛡️ Segurança (em desenvolvimento)  
+> Este endpoint será protegido com autenticação e controle de acesso (ROLE ADMIN) em versões futuras da API.
 
 ---
+
 ### 🔍 Buscar Categoria por ID
 
 **GET** `/api/v1/categories/{id}`
@@ -386,15 +403,16 @@ Retorna os dados de uma categoria específica.
 
 ```json
 {
-    "timestamp": "2026-04-09T18:42:25.491392800Z",
-    "status": 404,
-    "error": "Resource not found",
-    "message": "Entity not found id: 100",
-    "path": "/api/v1/categories/100"
+  "timestamp": "2026-04-09T18:42:25.491392800Z",
+  "status": 404,
+  "error": "Resource not found",
+  "message": "Entity not found id: 100",
+  "path": "/api/v1/categories/100"
 }
 ```
 
 ---
+
 ### 🔎 Buscar Categorias por Nome
 
 **GET** `/api/v1/categories/search`
@@ -408,6 +426,7 @@ Busca categorias por nome (case insensitive e parcial).
 | name      | string | Termo de busca |
 
 ### 🔸 Exemplo
+
 ```http
 GET /api/v1/categories/search?name=eletron
 ```
@@ -428,6 +447,7 @@ GET /api/v1/categories/search?name=eletron
 ```
 
 ---
+
 ### ✏️ Atualizar Categoria (Parcial)
 
 **PATCH** `/api/v1/categories/{id}`
@@ -435,16 +455,19 @@ GET /api/v1/categories/search?name=eletron
 Atualiza parcialmente os dados de uma categoria.
 
 ### 🔸 Request Body
+
 ```json
 {
   "name": "Eletrônicos Atualizado",
   "active": false
 }
 ```
+
 > 💡 Apenas campos enviados são atualizados
 > 💡 Campos null são ignorados
 
 ### 🔸 Response (200 OK)
+
 ```json
 {
   "id": 1,
@@ -455,6 +478,7 @@ Atualiza parcialmente os dados de uma categoria.
 ```
 
 ---
+
 ### ❌ Remover Categoria
 
 **DELETE** `/api/v1/categories/{id}`
@@ -462,9 +486,11 @@ Atualiza parcialmente os dados de uma categoria.
 Remove uma categoria do sistema.
 
 ### 🔸 Response
+
 - 204 No Content
 
 ### 🔸 Erros possíveis
+
 - 404 Not Found
 - 400 Bad Request (violação de integridade)
 
@@ -474,35 +500,38 @@ Remove uma categoria do sistema.
 
 ```json
 {
-    "timestamp": "2026-04-09T18:50:14.708743400Z",
-    "status": 404,
-    "error": "Resource not found",
-    "message": "Entity not found id: 100",
-    "path": "/api/v1/categories/100"
+  "timestamp": "2026-04-09T18:50:14.708743400Z",
+  "status": 404,
+  "error": "Resource not found",
+  "message": "Entity not found id: 100",
+  "path": "/api/v1/categories/100"
 }
 ```
+
 ```json
 {
-    "timestamp": "2026-04-09T18:50:44.722862600Z",
-    "status": 400,
-    "error": "Database error",
-    "message": "Cannot delete resource because it has related entities",
-    "path": "/api/v1/categories/1"
+  "timestamp": "2026-04-09T18:50:44.722862600Z",
+  "status": 400,
+  "error": "Database error",
+  "message": "Cannot delete resource because it has related entities",
+  "path": "/api/v1/categories/1"
 }
 ```
+
 > [!IMPORTANT]
 > A API segue boas práticas REST, utilizando corretamente os métodos HTTP (POST, GET, PATCH, DELETE), códigos de status e padronização de respostas, garantindo previsibilidade e facilidade de integração.
 
 ---
+
 ### 📦 Produtos (`/api/v1/products`)
 
-| Método | Endpoint              | Descrição                                   |
-|--------|----------------------|----------------------------------------------|
-| POST   | `/products`          | Cria um novo produto                         |
-| GET    | `/products`          | Lista produtos (paginado)                    |
-| GET    | `/products/{id}`     | Busca produto por ID (detalhado)             |
-| PATCH  | `/products/{id}`     | Atualiza parcialmente um produto             |
-| DELETE | `/products/{id}`     | Remove um produto                            |
+| Método | Endpoint         | Descrição                        |
+| ------ | ---------------- | -------------------------------- |
+| POST   | `/products`      | Cria um novo produto             |
+| GET    | `/products`      | Lista produtos (paginado)        |
+| GET    | `/products/{id}` | Busca produto por ID (detalhado) |
+| PATCH  | `/products/{id}` | Atualiza parcialmente um produto |
+| DELETE | `/products/{id}` | Remove um produto                |
 
 ---
 
@@ -521,6 +550,7 @@ Esta seção documenta todos os endpoints relacionados ao recurso **Produto**, i
 Cria um novo produto no sistema.
 
 #### 🔸 Request Body
+
 ```json
 {
   "name": "Notebook Gamer",
@@ -532,10 +562,12 @@ Cria um novo produto no sistema.
   "categoryIds": [1, 2]
 }
 ```
+
 > 💡 As categorias devem ser enviadas apenas como IDs (categoryIds)
 > 💡 O backend é responsável por resolver o relacionamento com categorias
 
 ### 🔸 Response (201 Created)
+
 ```json
 {
   "id": 1,
@@ -549,9 +581,12 @@ Cria um novo produto no sistema.
 ```
 
 ### 🔸 Headers
+
 ```http
 Location: /api/v1/products/1
 ```
+
+---
 
 ### 📄 Listar Produtos (Paginado)
 
@@ -560,6 +595,7 @@ Location: /api/v1/products/1
 Retorna uma lista paginada de produtos.
 
 ### 🔸 Query Params
+
 | Parâmetro | Tipo   | Descrição                |
 | --------- | ------ | ------------------------ |
 | page      | int    | Número da página         |
@@ -567,11 +603,13 @@ Retorna uma lista paginada de produtos.
 | sort      | string | Ordenação (ex: name,asc) |
 
 ### 🔸 Exemplo
+
 ```http
 GET /api/v1/products?page=0&size=10&sort=name,asc
 ```
 
 ### 🔸 Response (200 OK)
+
 ```json
 {
   "content": [
@@ -591,9 +629,12 @@ GET /api/v1/products?page=0&size=10&sort=name,asc
   "number": 0
 }
 ```
-> 🔐 Endpoint protegido (requer autenticação — ROLE ADMIN)
+
+> 🛡️ Segurança (em desenvolvimento)  
+> Este endpoint será protegido com autenticação e controle de acesso (ROLE ADMIN) em versões futuras da API.
 
 ---
+
 ### 🔍 Buscar Produto por ID
 
 **GET** `/api/v1/products/{id}`
@@ -601,6 +642,7 @@ GET /api/v1/products?page=0&size=10&sort=name,asc
 Retorna os detalhes completos de um produto, incluindo suas categorias.
 
 ### 🔸 Response (200 OK)
+
 ```json
 {
   "id": 1,
@@ -621,6 +663,7 @@ Retorna os detalhes completos de um produto, incluindo suas categorias.
 ```
 
 ### 🔸 Erros possíveis
+
 ```json
 {
   "timestamp": "2026-04-09T18:42:25.491392800Z",
@@ -632,6 +675,7 @@ Retorna os detalhes completos de um produto, incluindo suas categorias.
 ```
 
 ---
+
 ### ✏️ Atualizar Produto (Parcial)
 
 **PATCH** `/api/v1/products/{id}`
@@ -639,6 +683,7 @@ Retorna os detalhes completos de um produto, incluindo suas categorias.
 Atualiza parcialmente os dados de um produto.
 
 ### 🔸 Request Body
+
 ```json
 {
   "name": "Notebook Atualizado",
@@ -646,11 +691,13 @@ Atualiza parcialmente os dados de um produto.
   "categoryIds": [2, 3]
 }
 ```
+
 > 💡 Apenas campos enviados são atualizados
 > 💡 Campos null são ignorados
 > 💡 Se categoryIds for informado, as categorias serão substituídas
 
 🔸 Response (200 OK)
+
 ```json
 {
   "id": 1,
@@ -664,6 +711,7 @@ Atualiza parcialmente os dados de um produto.
 ```
 
 ---
+
 ### ❌ Remover Produto
 
 **DELETE** `/api/v1/products/{id}`
@@ -671,9 +719,11 @@ Atualiza parcialmente os dados de um produto.
 Remove um produto do sistema.
 
 ### 🔸 Response
+
 - 204 No Content
 
-## 🔸 Erros possíveis
+### 🔸 Erros possíveis
+
 - 404 Not Found
 - 400 Bad Request (violação de integridade)
 
@@ -690,6 +740,7 @@ Todos os erros seguem um padrão unificado:
   "path": "/api/v1/products/100"
 }
 ```
+
 ```json
 {
   "timestamp": "2026-04-09T18:50:44.722862600Z",
@@ -699,5 +750,165 @@ Todos os erros seguem um padrão unificado:
   "path": "/api/v1/products/1"
 }
 ```
+
 > [!IMPORTANT]
 > A API segue boas práticas REST, utilizando corretamente os métodos HTTP (POST, GET, PATCH, DELETE), códigos de status e padronização de respostas, garantindo previsibilidade e facilidade de integração.
+
+## ▶️ Como Executar o Projeto
+
+### 🔧 Pré-requisitos
+
+- Java 17+
+- Maven 3.9+
+- PostgreSQL (para ambiente `dev`)
+
+---
+
+### 🚀 Executando em ambiente de desenvolvimento
+
+```bash
+# Clonar o repositório
+git clone https://github.com/seu-usuario/seu-repo.git
+
+# Entrar na pasta do projeto
+cd dscatalog
+
+# Executar a aplicação
+./mvnw spring-boot:run
+```
+
+### ⚙️ Configuração do banco (PostgreSQL)
+
+Edite o arquivo: `src/main/resources/application-dev.properties`
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/dscatalog
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
+```
+
+---
+
+🧪 Executando em ambiente de teste (H2)
+
+A aplicação utiliza banco em memória automaticamente:
+
+```properties
+spring.datasource.url=jdbc:h2:mem:dscatalog
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+```
+
+Console disponível em: `http://localhost:8080/h2-console`
+
+---
+
+## 2. 📊 Swagger / Documentação Interativa
+
+```markdown
+## 📄 Documentação da API (Swagger)
+
+A API possui documentação interativa via Swagger UI.
+
+### 🔗 Acesse:
+
+- [Swagger UI](http://localhost:8080/swagger-ui.html) ou [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+```
+
+> [!TIP]
+> Permite testar endpoints diretamente pelo navegador.
+
+---
+
+### 🔄 Fluxo de Requisição
+
+Exemplo de fluxo ao criar um produto:
+
+1. Cliente envia requisição HTTP (POST `/products`)
+2. `ProductController` recebe os dados (DTO)
+3. `ProductService` aplica regras de negócio
+4. `ProductMapper` converte DTO → Entity
+5. `ProductRepository` persiste no banco
+6. Resposta é convertida para DTO e retornada
+   > [!IMPORTANT]
+   > Esse fluxo garante separação de responsabilidades e baixo acoplamento.
+
+---
+
+## 🧠 Decisões de Arquitetura
+
+Algumas decisões importantes tomadas no projeto:
+
+- Uso de **DTOs com records** → imutabilidade e clareza
+- Separação de **Mapper** → evita acoplamento entre camadas
+- Uso de **PATCH** → atualização parcial eficiente
+- Relacionamento resolvido no backend → evita inconsistência no client
+- Tratamento global de exceções → padronização e rastreabilidade
+
+> Essas decisões seguem boas práticas utilizadas em sistemas corporativos.
+
+---
+
+## 🔐 Segurança (Roadmap)
+
+A API está preparada para evolução com segurança baseada em:
+
+- Spring Security
+- Autenticação via JWT
+- Controle de acesso por roles (ROLE ADMIN)
+  > [!NOTE]
+  > Atualmente não implementado, mas planejado para o proximo capítulo do curso.
+
+---
+
+## 🚧 Melhorias Futuras
+
+- Implementação de autenticação com JWT
+- Upload de imagens para produtos
+- Cache com Redis
+- Deploy em cloud (AWS / Railway / Render)
+- CI/CD com GitHub Actions
+- Testes de integração mais robustos
+  > [!NOTE]
+  > O projeto foi estruturado pensando em evolução contínua.
+
+---
+
+## 🎓 Conclusão
+
+Este projeto foi fundamental para consolidar conceitos essenciais no desenvolvimento de APIs REST com Java e Spring Boot.
+
+Durante a implementação, foram aplicados na prática:
+
+- Estruturação de aplicações em **arquitetura em camadas**
+- Uso de **DTOs e Mappers** para desacoplamento
+- Implementação de **operações CRUD completas**
+- Uso de **paginação, ordenação e filtros**
+- Tratamento de **exceções padronizado**
+- Organização de código voltada para **manutenção e escalabilidade**
+
+Além disso, o projeto reforçou a importância de:
+
+- Separação clara de responsabilidades
+- Padronização de respostas da API
+- Uso correto de métodos HTTP e status codes
+- Escrita de código limpo e bem documentado
+
+Mais do que apenas um CRUD, este projeto representa a construção de uma base sólida para desenvolvimento de aplicações backend profissionais, seguindo boas práticas amplamente utilizadas no mercado.
+
+> 🚀 Este é um passo importante na evolução como desenvolvedor backend Java, preparando o caminho para projetos mais complexos e ambientes de produção.
+
+---
+
+## 👨‍💻 Autor
+
+**Albert Silva de Jesus**  
+Desenvolvedor Backend Java | Spring Boot
+
+---
+
+### 📎 Contato
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-%230077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/albert-backend-java-spring-boot/)
+[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:albertinesilva.17@gmail.com?subject=Contato%20sobre%20o%20projeto%20CAD-MOTOTAXISTA)
