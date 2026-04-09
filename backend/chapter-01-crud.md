@@ -806,20 +806,19 @@ Console disponível em: `http://localhost:8080/h2-console`
 
 ---
 
-### 2. 📊 Swagger / Documentação Interativa
+## 📊 Documentação Interativa (Swagger)
 
-```markdown
-## 📄 Documentação da API (Swagger)
+A API disponibiliza documentação interativa utilizando **Swagger UI**, permitindo visualizar e testar os endpoints diretamente pelo navegador, sem necessidade de ferramentas externas.
 
-A API possui documentação interativa via Swagger UI.
+### 🔗 Acesso
 
-### 🔗 Acesse:
+Após iniciar a aplicação, acesse:
 
-- [Swagger UI](http://localhost:8080/swagger-ui.html) ou [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-```
+- http://localhost:8080/swagger-ui.html  
+- http://localhost:8080/swagger-ui/index.html  
 
 > [!TIP]
-> Permite testar endpoints diretamente pelo navegador.
+> Utilize o Swagger para explorar os endpoints, validar requisições e entender rapidamente os contratos da API.
 
 ---
 
@@ -839,7 +838,7 @@ Exemplo de fluxo ao criar um produto:
 
 ---
 
-## 🧠 Decisões de Arquitetura
+### 🧠 Decisões de Arquitetura
 
 Algumas decisões importantes tomadas no projeto:
 
@@ -854,7 +853,7 @@ Algumas decisões importantes tomadas no projeto:
 
 ---
 
-## 🔐 Segurança (Roadmap)
+### 🔐 Segurança (Roadmap)
 
 A API está preparada para evolução com segurança baseada em:
 
@@ -867,7 +866,7 @@ A API está preparada para evolução com segurança baseada em:
 
 ---
 
-## 🚧 Melhorias Futuras
+### 🚧 Melhorias Futuras
 
 - Implementação de autenticação com JWT
 - Upload de imagens para produtos
@@ -881,7 +880,7 @@ A API está preparada para evolução com segurança baseada em:
 
 ---
 
-## 🎓 Conclusão
+### 🎓 Conclusão e Aprendizados
 
 Este projeto foi fundamental para consolidar conceitos essenciais no desenvolvimento de APIs REST com Java e Spring Boot.
 
