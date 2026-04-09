@@ -113,3 +113,152 @@ A aplicação contempla a organização em camadas: `controller`, `service` e `r
 ┃ ┣ 📄 `application-test.properties`  
 ┃ ┣ 📄 `application.properties`  
 ┃ ┗ 📄 `import.sql`
+
+---
+
+## 🧱 Arquitetura em Camadas
+
+A aplicação **DSCatalog** segue a arquitetura tradicional **Controller → Service → Repository**, organizada em camadas bem definidas para garantir **manutenção mais fácil, testabilidade e escalabilidade**.
+
+<img src="https://raw.githubusercontent.com/Albertinesilva/devsuperior-java-springboot-bootcamp/chapter-01-crud/backend/src/main/resources/static/assets/imgs/padrao-camadas.png" width="100%">
+
+## Padrão de Camadas
+
+- Consiste em organizar os componentes do sistema em **partes denominadas camadas**.  
+- Cada camada possui **responsabilidade específica**.  
+- Componentes de uma camada só podem depender de **componentes da mesma camada** ou da camada **mais abaixo**.
+
+## Descrição das Camadas e Responsabilidades
+
+### Controller
+- Responde interações do usuário (no caso de API REST, as requisições HTTP).  
+- Recebe os dados do front-end, encaminha para o service e retorna respostas padronizadas.  
+
+### Service
+- Realiza operações de negócio, cada método deve ter **significado relacionado ao negócio**.  
+- Pode executar várias operações dentro de uma transação.  
+  *Exemplo:* `registrarPedido` → verificar estoque, salvar pedido, baixar estoque, enviar email.  
+- Manipula DTOs, valida regras de negócio e interage com o repository.  
+
+### Repository
+- Executa operações **individuais** de acesso ao banco de dados.  
+- Responsável pela persistência via **Spring Data JPA**.  
+
+### DTOs (Data Transfer Objects)
+- Objetos **simples**, usados apenas para transferência de dados.  
+- Não são gerenciados por ORM / banco de dados.  
+- Podem conter outros DTOs **aninhados**, mas **nunca devem conter entities**.  
+- Usos comuns:
+  - Projeção de dados
+  - Segurança (não expor dados sensíveis)
+  - Economia de tráfego
+  - Flexibilidade: diferentes representações dos dados
+    - Combobox: `{ id: number, nome: string }`
+    - Relatório detalhado: `{ id, nome, salario, email, telefones[] }`  
+
+### Mapper
+- Converte entre **entities** do banco e **DTOs**, mantendo separação de responsabilidades.  
+
+### Exception Handler Global
+- Captura exceções em toda a aplicação e retorna respostas padronizadas em **JSON**, com mensagens claras e rastreabilidade.  
+
+## Por que usar DTOs?
+
+- Separação clara de responsabilidades:  
+  - **Service e Repository:** foco em transações e monitoramento ORM  
+  - **Controller:** tráfego simples de dados  
+- Segurança, economia de tráfego e flexibilidade na API.  
+- Facilita diferentes representações de dados para front-end e relatórios.
+
+> [!IMPORTANT]  
+> Essa separação garante **código limpo, testável e escalável**, permitindo que a aplicação evolua sem impactar outras camadas, além de tornar a leitura do código mais intuitiva para recrutadores e profissionais que avaliam a arquitetura do sistema.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+O projeto **DSCatalog** foi desenvolvido utilizando um conjunto moderno de tecnologias voltadas para construção de APIs REST robustas, escaláveis e bem estruturadas.
+
+### 📌 Stack Principal
+
+| Categoria            | Tecnologia                                      | Função                                                                 |
+|---------------------|--------------------------------------------------|------------------------------------------------------------------------|
+| Linguagem           | Java 17                                          | Desenvolvimento backend moderno com recursos atuais da linguagem      |
+| Framework           | Spring Boot 3.5.13                               | Estrutura principal da aplicação e gerenciamento de dependências      |
+| API REST            | Spring Web                                       | Criação de endpoints HTTP (RESTful APIs)                              |
+| Persistência        | Spring Data JPA                                  | Abstração para acesso a dados e integração com ORM                    |
+| ORM                 | Hibernate                                        | Mapeamento objeto-relacional (Entity ↔ Tabela)                        |
+| Validação           | Spring Boot Validation                           | Validação de dados de entrada (Bean Validation)                       |
+
+---
+
+### 🗄️ Banco de Dados
+
+| Categoria            | Tecnologia        | Função                                                                 |
+|---------------------|------------------|------------------------------------------------------------------------|
+| Banco Principal     | PostgreSQL        | Banco relacional utilizado no ambiente de desenvolvimento              |
+| Banco de Testes     | H2 Database       | Banco em memória para testes rápidos e isolados                        |
+| Console DB          | H2 Console        | Interface web para inspeção de dados em ambiente de teste              |
+
+---
+
+### 🔄 Migração e Versionamento de Banco
+
+| Tecnologia  | Função                                                                 |
+|-------------|------------------------------------------------------------------------|
+| Flyway      | Controle de versão do banco de dados (migrations de schema e dados)   |
+
+---
+
+### 📄 Documentação da API
+
+| Tecnologia                        | Função                                                                 |
+|----------------------------------|------------------------------------------------------------------------|
+| SpringDoc OpenAPI (Swagger UI)   | Geração automática de documentação interativa da API REST             |
+| JavaDocs                         | Documentação técnica do código, descrevendo responsabilidades, métodos e fluxos |
+> [!TIP]
+> A API conta com documentação automatizada via **Swagger/OpenAPI**, além de **JavaDocs** bem definidos nos controllers e services, facilitando o entendimento da lógica de negócio e manutenção do código.
+---
+
+### 🧪 Testes
+
+| Tecnologia                     | Função                                                |
+|--------------------------------|--------------------------------------------------------|
+| Spring Boot Starter Test       | Testes unitários e de integração                      |
+
+---
+
+### ⚙️ Ferramentas de Desenvolvimento
+
+| Ferramenta              | Função                                                                 |
+|------------------------|------------------------------------------------------------------------|
+| Spring Boot DevTools   | Hot reload e aumento de produtividade no desenvolvimento              |
+| IntelliJ IDEA         | IDE principal para desenvolvimento backend                           |
+| VS Code               | Editor auxiliar                                                      |
+| Postman               | Teste de endpoints e simulação de requisições HTTP                   |
+| pgAdmin               | Administração e gerenciamento do banco PostgreSQL                    |
+
+---
+
+### 📦 Build e Gerenciamento
+
+| Tecnologia        | Função                                                |
+|------------------|--------------------------------------------------------|
+| Maven            | Gerenciamento de dependências e build do projeto      |
+| Maven Compiler   | Compilação com suporte ao Java 17                     |
+| Maven Javadoc    | Geração de documentação técnica do código             |
+
+---
+
+### 📊 Observabilidade e Logs
+
+| Tecnologia        | Função                                                                 |
+|------------------|------------------------------------------------------------------------|
+| Logback (Spring) | Gerenciamento de logs da aplicação                                     |
+| SLF4J            | Abstração de logging                                                   |
+| JSON Logging     | Logs estruturados para melhor rastreabilidade                         |
+
+---
+
+> [!IMPORTANT]
+> A escolha dessas tecnologias segue padrões amplamente adotados no mercado, garantindo **produtividade, manutenibilidade e escalabilidade**, além de alinhar o projeto com práticas profissionais utilizadas em aplicações corporativas.
