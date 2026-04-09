@@ -262,3 +262,233 @@ O projeto **DSCatalog** foi desenvolvido utilizando um conjunto moderno de tecno
 
 > [!IMPORTANT]
 > A escolha dessas tecnologias segue padrões amplamente adotados no mercado, garantindo **produtividade, manutenibilidade e escalabilidade**, além de alinhar o projeto com práticas profissionais utilizadas em aplicações corporativas.
+
+---
+## 🚀 API REST — Endpoints
+
+A API do **DSCatalog** expõe endpoints REST seguindo boas práticas de design, utilizando JSON como formato padrão de comunicação.
+
+---
+
+### 📦 Categorias (`/api/v1/categories`)
+
+| Método | Endpoint                  | Descrição                                 |
+|--------|--------------------------|--------------------------------------------|
+| POST   | `/categories`            | Cria uma nova categoria                   |
+| GET    | `/categories`            | Lista categorias (paginado)               |
+| GET    | `/categories/{id}`       | Busca categoria por ID                    |
+| GET    | `/categories/search`     | Busca categorias por nome                 |
+| PATCH  | `/categories/{id}`       | Atualiza parcialmente uma categoria       |
+| DELETE | `/categories/{id}`       | Remove uma categoria                      |
+
+---
+
+## 📌 Endpoints — Categorias
+
+Base URL: `/api/v1/categories`
+
+Esta seção documenta todos os endpoints relacionados ao recurso **Categoria**, incluindo exemplos de requisição e resposta.
+
+---
+
+### 📥 Criar Categoria
+
+**POST** `/api/v1/categories`
+
+Cria uma nova categoria no sistema.
+
+#### 🔸 Request Body
+```json
+{
+  "name": "Eletrônicos",
+  "description": "Produtos eletrônicos em geral",
+  "active": true
+}
+```
+>💡 O campo active é opcional. Caso não seja informado, será definido como false.
+
+### 🔸 Response (201 Created)
+
+```json
+{
+  "id": 1,
+  "name": "Eletrônicos",
+  "description": "Produtos eletrônicos em geral",
+  "active": true
+}
+```
+### 🔸 Headers
+```
+Location: /api/v1/categories/1
+```
+
+---
+### 📄 Listar Categorias (Paginado)
+
+**GET** `/api/v1/categories`
+
+Retorna uma lista paginada de categorias.
+
+#### 🔸 Query Params
+
+| Parâmetro     | Tipo   | Default | Descrição                     |
+|--------------|--------|---------|-------------------------------|
+| page         | int    | 0       | Número da página              |
+| linesPerPage | int    | 12      | Quantidade de registros       |
+| orderBy      | string | name    | Campo de ordenação            |
+| direction    | string | ASC     | Direção (ASC ou DESC)         |
+
+#### 🔸 Exemplo
+
+```http
+GET /api/v1/categories?page=0&linesPerPage=10&orderBy=name&direction=ASC
+```
+
+### 🔸 Response (200 OK)
+
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Eletrônicos",
+      "description": "Produtos eletrônicos",
+      "active": true
+    }
+  ],
+  "totalElements": 1,
+  "totalPages": 1,
+  "size": 10,
+  "number": 0
+}
+```
+> 🔐 Endpoint protegido (requer autenticação — ROLE ADMIN)
+
+---
+### 🔍 Buscar Categoria por ID
+
+**GET** `/api/v1/categories/{id}`
+
+Retorna os dados de uma categoria específica.
+
+### 🔸 Response (200 OK)
+
+```json
+{
+  "id": 1,
+  "name": "Eletrônicos",
+  "description": "Produtos eletrônicos",
+  "active": true
+}
+```
+
+### 🔸 Erros possíveis
+
+```json
+{
+    "timestamp": "2026-04-09T18:42:25.491392800Z",
+    "status": 404,
+    "error": "Resource not found",
+    "message": "Entity not found id: 100",
+    "path": "/api/v1/categories/100"
+}
+```
+
+---
+### 🔎 Buscar Categorias por Nome
+
+**GET** `/api/v1/categories/search`
+
+Busca categorias por nome (case insensitive e parcial).
+
+### 🔸 Query Params
+
+| Parâmetro | Tipo   | Descrição      |
+| --------- | ------ | -------------- |
+| name      | string | Termo de busca |
+
+### 🔸 Exemplo
+```http
+GET /api/v1/categories/search?name=eletron
+```
+
+### 🔸 Response (200 OK)
+
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Eletrônicos",
+      "description": "Produtos eletrônicos",
+      "active": true
+    }
+  ]
+}
+```
+
+---
+### ✏️ Atualizar Categoria (Parcial)
+
+**PATCH** `/api/v1/categories/{id}`
+
+Atualiza parcialmente os dados de uma categoria.
+
+### 🔸 Request Body
+```json
+{
+  "name": "Eletrônicos Atualizado",
+  "active": false
+}
+```
+> 💡 Apenas campos enviados são atualizados
+> 💡 Campos null são ignorados
+
+### 🔸 Response (200 OK)
+```json
+{
+  "id": 1,
+  "name": "Eletrônicos Atualizado",
+  "description": "Produtos eletrônicos",
+  "active": false
+}
+```
+
+---
+### ❌ Remover Categoria
+
+**DELETE** `/api/v1/categories/{id}`
+
+Remove uma categoria do sistema.
+
+### 🔸 Response
+- 204 No Content
+
+### 🔸 Erros possíveis
+- 404 Not Found
+- 400 Bad Request (violação de integridade)
+
+### ⚠️ Padrão de Erro
+
+- Todos os erros seguem um padrão unificado:
+
+```json
+{
+    "timestamp": "2026-04-09T18:50:14.708743400Z",
+    "status": 404,
+    "error": "Resource not found",
+    "message": "Entity not found id: 100",
+    "path": "/api/v1/categories/100"
+}
+```
+```json
+{
+    "timestamp": "2026-04-09T18:50:44.722862600Z",
+    "status": 400,
+    "error": "Database error",
+    "message": "Cannot delete resource because it has related entities",
+    "path": "/api/v1/categories/1"
+}
+```
+> [!IMPORTANT]
+> A API segue boas práticas REST, utilizando corretamente os métodos HTTP (POST, GET, PATCH, DELETE), códigos de status e padronização de respostas, garantindo previsibilidade e facilidade de integração.
