@@ -754,7 +754,9 @@ Todos os erros seguem um padrão unificado:
 > [!IMPORTANT]
 > A API segue boas práticas REST, utilizando corretamente os métodos HTTP (POST, GET, PATCH, DELETE), códigos de status e padronização de respostas, garantindo previsibilidade e facilidade de integração.
 
-## ▶️ Como Executar o Projeto
+---
+
+### ▶️ Como Executar o Projeto
 
 ### 🔧 Pré-requisitos
 
@@ -789,7 +791,7 @@ spring.datasource.password=sua_senha
 
 ---
 
-🧪 Executando em ambiente de teste (H2)
+### 🧪 Executando em ambiente de teste (H2)
 
 A aplicação utiliza banco em memória automaticamente:
 
@@ -804,7 +806,7 @@ Console disponível em: `http://localhost:8080/h2-console`
 
 ---
 
-## 2. 📊 Swagger / Documentação Interativa
+### 2. 📊 Swagger / Documentação Interativa
 
 ```markdown
 ## 📄 Documentação da API (Swagger)
@@ -831,8 +833,9 @@ Exemplo de fluxo ao criar um produto:
 4. `ProductMapper` converte DTO → Entity
 5. `ProductRepository` persiste no banco
 6. Resposta é convertida para DTO e retornada
-   > [!IMPORTANT]
-   > Esse fluxo garante separação de responsabilidades e baixo acoplamento.
+
+> [!IMPORTANT]
+> Esse fluxo garante separação de responsabilidades e baixo acoplamento.
 
 ---
 
@@ -846,6 +849,7 @@ Algumas decisões importantes tomadas no projeto:
 - Relacionamento resolvido no backend → evita inconsistência no client
 - Tratamento global de exceções → padronização e rastreabilidade
 
+> [!NOTE]
 > Essas decisões seguem boas práticas utilizadas em sistemas corporativos.
 
 ---
@@ -857,8 +861,9 @@ A API está preparada para evolução com segurança baseada em:
 - Spring Security
 - Autenticação via JWT
 - Controle de acesso por roles (ROLE ADMIN)
-  > [!NOTE]
-  > Atualmente não implementado, mas planejado para o proximo capítulo do curso.
+
+> [!NOTE]
+> Atualmente não implementado, mas planejado para o proximo capítulo do curso.
 
 ---
 
@@ -870,8 +875,9 @@ A API está preparada para evolução com segurança baseada em:
 - Deploy em cloud (AWS / Railway / Render)
 - CI/CD com GitHub Actions
 - Testes de integração mais robustos
-  > [!NOTE]
-  > O projeto foi estruturado pensando em evolução contínua.
+
+> [!NOTE]
+> O projeto foi estruturado pensando em evolução contínua.
 
 ---
 
