@@ -15,7 +15,14 @@ import com.albertsilva.dev.dscatalog.dto.product.request.ProductUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.services.ProductService;
+import com.albertsilva.dev.dscatalog.web.exceptions.StandardError;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -106,6 +113,11 @@ public class ProductController {
    * @param productCreateRequest dados do produto
    * @return produto criado
    */
+  @Operation(summary = "Cria um novo produto", description = "Recurso para criar um produto no sistema.", responses = {
+      @ApiResponse(responseCode = "201", description = "Produto criado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Dados inválidos ou campos obrigatórios ausentes", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class))),
+      @ApiResponse(responseCode = "409", description = "Produto já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+  })
   @PostMapping
   public ResponseEntity<ProductResponse> insert(@RequestBody ProductCreateRequest productCreateRequest) {
     logger.debug("Recebendo requisição para criar produto: {}", productCreateRequest);
@@ -146,6 +158,10 @@ public class ProductController {
    * @param pageable configuração de paginação automática
    * @return lista paginada de produtos
    */
+  @Operation(summary = "Lista todos os produtos com paginação", description = "Exige Bearer Token. Acesso restrito a ADMIN.", security = @SecurityRequirement(name = "security"), responses = {
+      @ApiResponse(responseCode = "200", description = "Lista paginada de produtos", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProductResponse.class)))),
+      @ApiResponse(responseCode = "403", description = "Usuário sem permissão para acessar este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+  })
   @GetMapping
   public ResponseEntity<Page<ProductResponse>> findAll(Pageable pageable) {
     logger.debug("Buscando produtos paginados - page: {}, size: {}",
@@ -175,6 +191,10 @@ public class ProductController {
    * @param id identificador do produto
    * @return detalhes do produto
    */
+  @Operation(summary = "Busca um produto pelo ID", description = "Recurso para obter detalhes completos de um produto pelo seu ID.", responses = {
+      @ApiResponse(responseCode = "200", description = "Produto encontrado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailsResponse.class))),
+      @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+  })
   @GetMapping(value = "/{id}")
   public ResponseEntity<ProductDetailsResponse> findById(@PathVariable Long id) {
     logger.debug("Buscando produto por id: {}", id);
@@ -215,6 +235,11 @@ public class ProductController {
    * @param productUpdateRequest dados para atualização
    * @return produto atualizado
    */
+  @Operation(summary = "Atualiza um produto", description = "Atualização parcial dos dados do produto, incluindo categorias.", responses = {
+      @ApiResponse(responseCode = "200", description = "Produto atualizado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductResponse.class))),
+      @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class))),
+      @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+  })
   @PatchMapping(value = "/{id}")
   public ResponseEntity<ProductResponse> update(@PathVariable Long id,
       @RequestBody ProductUpdateRequest productUpdateRequest) {
@@ -242,6 +267,11 @@ public class ProductController {
    * @param id identificador do produto
    * @return resposta sem conteúdo
    */
+  @Operation(summary = "Remove um produto", description = "Exclui um produto pelo ID. Retorna erro se houver integridade referencial.", responses = {
+      @ApiResponse(responseCode = "204", description = "Produto deletado com sucesso"),
+      @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class))),
+      @ApiResponse(responseCode = "400", description = "Violação de integridade - existem entidades relacionadas", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+  })
   @DeleteMapping(value = "/{id}")
   public ResponseEntity<Void> delete(@PathVariable Long id) {
     logger.debug("Deletando produto id={}", id);
