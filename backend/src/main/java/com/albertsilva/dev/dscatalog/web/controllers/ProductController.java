@@ -15,7 +15,7 @@ import com.albertsilva.dev.dscatalog.dto.product.request.ProductUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.services.ProductService;
-import com.albertsilva.dev.dscatalog.web.exceptions.StandardError;
+import com.albertsilva.dev.dscatalog.web.exceptions.handler.StandardError;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;

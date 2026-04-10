@@ -1,4 +1,4 @@
-package com.albertsilva.dev.dscatalog.web.exceptions;
+package com.albertsilva.dev.dscatalog.web.exceptions.handler;
 
 import java.time.Instant;
 
@@ -52,11 +52,6 @@ import jakarta.servlet.http.HttpServletRequest;
 public class ControllerExceptionHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(ControllerExceptionHandler.class);
-
-  public static final String RESOURCE_NOT_FOUND = "Resource not found";
-  public static final String DATABASE_ERROR = "Database error";
-  public static final String INTERNAL_SERVER_ERROR = "Internal server error";
-  public static final String UNEXPECTED_ERROR_OCCURRED = "Unexpected error occurred";
 
   /**
    * Trata exceções do tipo {@link ResourceNotFoundException}.
