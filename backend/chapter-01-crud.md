@@ -98,10 +98,12 @@ A aplicação contempla a organização em camadas: `controller`, `service` e `r
 ┃ ┣ 📂 `controllers`  
 ┃ ┃ ┣ 📄 `CategoryController.java`  
 ┃ ┃ ┗ 📄 `ProductController.java`  
-┃ ┣ 📂 `enums`  
 ┃ ┗ 📂 `exceptions`  
-┃ ┣ 📄 `ControllerExceptionHandler.java`  
-┃ ┗ 📄 `StandardError.java`  
+┃ ┃ ┣ 📂 `enums`  
+┃ ┃ ┃ ┗ 📄 `ErrorType.java`  
+┃ ┃ ┗ 📂 `handler`  
+┃ ┃ ┃ ┣ 📄 `ControllerExceptionHandler.java`  
+┃ ┃ ┃ ┗ 📄 `StandardError.java`    
 ┣ 📄 `DscatalogApplication.java`  
 ┣ 📂 `resources`  
 ┃ ┣ 📂 `db`  
