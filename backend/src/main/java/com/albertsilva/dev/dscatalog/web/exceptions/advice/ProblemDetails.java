@@ -1,10 +1,12 @@
-package com.albertsilva.dev.dscatalog.web.exceptions.handler;
+package com.albertsilva.dev.dscatalog.web.exceptions.advice;
 
 import java.io.Serializable;
 import java.time.Instant;
 
 /**
  * Classe que representa o padrão de resposta de erro da API.
+ * Implementação simplificada de resposta de erro da API.
+ * Não segue integralmente o padrão RFC 7807 (Problem Details).
  *
  * <p>
  * Todos os erros retornados pela aplicação seguem esse formato,
@@ -36,7 +38,7 @@ import java.time.Instant;
  * }
  * </pre>
  */
-public class StandardError implements Serializable {
+public class ProblemDetails implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private Instant timestamp;
@@ -45,10 +47,10 @@ public class StandardError implements Serializable {
   private String message;
   private String path;
 
-  public StandardError() {
+  public ProblemDetails() {
   }
 
-  public StandardError(Instant timestamp, Integer status, String error, String message, String path) {
+  public ProblemDetails(Instant timestamp, Integer status, String error, String message, String path) {
     this.timestamp = timestamp;
     this.status = status;
     this.error = error;

@@ -1,4 +1,4 @@
-package com.albertsilva.dev.dscatalog.web.exceptions.handler;
+package com.albertsilva.dev.dscatalog.web.exceptions.advice;
 
 import java.time.Instant;
 
@@ -75,10 +75,10 @@ public class ControllerExceptionHandler {
    * @return resposta padronizada contendo detalhes do erro
    */
   @ExceptionHandler(ResourceNotFoundException.class)
-  public ResponseEntity<StandardError> handleResourceNotFound(ResourceNotFoundException e, HttpServletRequest request) {
+  public ResponseEntity<ProblemDetails> handleResourceNotFound(ResourceNotFoundException e, HttpServletRequest request) {
     HttpStatus status = HttpStatus.NOT_FOUND;
     logger.warn("ResourceNotFoundException - path: {}, message: {}", request.getRequestURI(), e.getMessage());
-    StandardError err = new StandardError(Instant.now(), status.value(), ErrorType.RESOURCE_NOT_FOUND.getMessage(),
+    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), ErrorType.RESOURCE_NOT_FOUND.getMessage(),
         e.getMessage(),
         request.getRequestURI());
     return ResponseEntity.status(status).body(err);
@@ -110,10 +110,10 @@ public class ControllerExceptionHandler {
    * @return resposta padronizada contendo detalhes do erro
    */
   @ExceptionHandler(DatabaseException.class)
-  public ResponseEntity<StandardError> handleDatabase(DatabaseException e, HttpServletRequest request) {
+  public ResponseEntity<ProblemDetails> handleDatabase(DatabaseException e, HttpServletRequest request) {
     HttpStatus status = HttpStatus.BAD_REQUEST;
     logger.error("DatabaseException - path: {}, message: {}", request.getRequestURI(), e.getMessage(), e);
-    StandardError err = new StandardError(Instant.now(), status.value(), ErrorType.DATABASE_ERROR.getMessage(),
+    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), ErrorType.DATABASE_ERROR.getMessage(),
         e.getMessage(),
         request.getRequestURI());
     return ResponseEntity.status(status).body(err);
@@ -141,10 +141,10 @@ public class ControllerExceptionHandler {
    * @return resposta padronizada contendo detalhes do erro
    */
   @ExceptionHandler(DataIntegrityViolationException.class)
-  public ResponseEntity<StandardError> handleDataIntegrity(DataIntegrityViolationException e,
+  public ResponseEntity<ProblemDetails> handleDataIntegrity(DataIntegrityViolationException e,
       HttpServletRequest request) {
     HttpStatus status = HttpStatus.BAD_REQUEST;
-    StandardError err = new StandardError(Instant.now(), status.value(), ErrorType.DATABASE_ERROR.getMessage(),
+    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), ErrorType.DATABASE_ERROR.getMessage(),
         "Cannot delete resource because it has related entities",
         request.getRequestURI());
     return ResponseEntity.status(status).body(err);
@@ -173,11 +173,11 @@ public class ControllerExceptionHandler {
    * @return resposta padronizada contendo detalhes do erro
    */
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<StandardError> handleGeneric(Exception e,
+  public ResponseEntity<ProblemDetails> handleGeneric(Exception e,
       HttpServletRequest request) {
     HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
     logger.error("Unexpected error - path: {}", request.getRequestURI(), e);
-    StandardError err = new StandardError(Instant.now(), status.value(), ErrorType.INTERNAL_SERVER_ERROR.getMessage(),
+    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), ErrorType.INTERNAL_SERVER_ERROR.getMessage(),
         ErrorType.UNEXPECTED_ERROR_OCCURRED.getMessage(),
         request.getRequestURI());
     return ResponseEntity.status(status).body(err);

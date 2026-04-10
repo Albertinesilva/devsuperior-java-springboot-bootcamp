@@ -16,7 +16,7 @@ import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.request.CategoryUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.services.CategoryService;
-import com.albertsilva.dev.dscatalog.web.exceptions.handler.StandardError;
+import com.albertsilva.dev.dscatalog.web.exceptions.advice.ProblemDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -98,8 +98,8 @@ public class CategoryController {
    */
   @Operation(summary = "Cria uma nova categoria", description = "Recurso para criar uma nova categoria no sistema.", responses = {
       @ApiResponse(responseCode = "201", description = "Categoria criada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryResponse.class))),
-      @ApiResponse(responseCode = "400", description = "Dados inválidos ou campos obrigatórios ausentes", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class))),
-      @ApiResponse(responseCode = "409", description = "Categoria já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+      @ApiResponse(responseCode = "400", description = "Dados inválidos ou campos obrigatórios ausentes", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class))),
+      @ApiResponse(responseCode = "409", description = "Categoria já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
   })
   @PostMapping
   public ResponseEntity<CategoryResponse> insert(@RequestBody CategoryCreateRequest categoryCreateRequest) {
@@ -142,7 +142,7 @@ public class CategoryController {
    */
   @Operation(summary = "Lista todas as categorias com paginação", description = "Exige Bearer Token. Acesso restrito a ADMIN.", security = @SecurityRequirement(name = "security"), responses = {
       @ApiResponse(responseCode = "200", description = "Lista paginada de categorias", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CategoryResponse.class)))),
-      @ApiResponse(responseCode = "403", description = "Usuário sem permissão para acessar este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+      @ApiResponse(responseCode = "403", description = "Usuário sem permissão para acessar este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
   })
   @GetMapping
   public ResponseEntity<Page<CategoryResponse>> findAll(
@@ -173,7 +173,7 @@ public class CategoryController {
    */
   @Operation(summary = "Busca uma categoria pelo ID", description = "Recurso para obter detalhes de uma categoria específica pelo seu ID.", responses = {
       @ApiResponse(responseCode = "200", description = "Categoria encontrada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryResponse.class))),
-      @ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+      @ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
   })
   @GetMapping(value = "/{id}")
   public ResponseEntity<CategoryResponse> findById(@PathVariable Long id) {
@@ -206,7 +206,7 @@ public class CategoryController {
    */
   @Operation(summary = "Busca categorias por nome", description = "Permite busca parcial de categorias pelo nome. Case insensitive.", responses = {
       @ApiResponse(responseCode = "200", description = "Lista paginada de categorias filtradas", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CategoryResponse.class)))),
-      @ApiResponse(responseCode = "400", description = "Parâmetro de busca inválido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+      @ApiResponse(responseCode = "400", description = "Parâmetro de busca inválido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
   })
   @GetMapping("/search")
   public ResponseEntity<Page<CategoryResponse>> search(@RequestParam String name, Pageable pageable) {
@@ -239,8 +239,8 @@ public class CategoryController {
    */
   @Operation(summary = "Atualiza uma categoria", description = "Atualização parcial dos dados da categoria. Apenas campos enviados são alterados.", responses = {
       @ApiResponse(responseCode = "200", description = "Categoria atualizada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryResponse.class))),
-      @ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class))),
-      @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+      @ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class))),
+      @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
   })
   @PatchMapping(value = "/{id}")
   public ResponseEntity<CategoryResponse> update(@PathVariable Long id,
@@ -274,8 +274,8 @@ public class CategoryController {
    */
   @Operation(summary = "Remove uma categoria", description = "Exclui uma categoria pelo ID. Retorna erro se houver integridade referencial.", responses = {
       @ApiResponse(responseCode = "204", description = "Categoria deletada com sucesso"),
-      @ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class))),
-      @ApiResponse(responseCode = "400", description = "Violação de integridade - existem entidades relacionadas", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+      @ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class))),
+      @ApiResponse(responseCode = "400", description = "Violação de integridade - existem entidades relacionadas", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
   })
   @DeleteMapping(value = "/{id}")
   public ResponseEntity<Void> delete(@PathVariable Long id) {

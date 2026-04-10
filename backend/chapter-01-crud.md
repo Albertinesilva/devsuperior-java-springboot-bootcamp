@@ -101,9 +101,9 @@ A aplicação contempla a organização em camadas: `controller`, `service` e `r
 ┃ ┗ 📂 `exceptions`  
 ┃ ┃ ┣ 📂 `enums`  
 ┃ ┃ ┃ ┗ 📄 `ErrorType.java`  
-┃ ┃ ┗ 📂 `handler`  
+┃ ┃ ┗ 📂 `advice`  
 ┃ ┃ ┃ ┣ 📄 `ControllerExceptionHandler.java`  
-┃ ┃ ┃ ┗ 📄 `StandardError.java`    
+┃ ┃ ┃ ┗ 📄 `ProblemDetails.java`  
 ┣ 📄 `DscatalogApplication.java`  
 ┣ 📂 `resources`  
 ┃ ┣ 📂 `db`  
@@ -816,8 +816,8 @@ A API disponibiliza documentação interativa utilizando **Swagger UI**, permiti
 
 Após iniciar a aplicação, acesse:
 
-- http://localhost:8080/swagger-ui.html  
-- http://localhost:8080/swagger-ui/index.html  
+- http://localhost:8080/swagger-ui.html
+- http://localhost:8080/swagger-ui/index.html
 
 > [!TIP]
 > Utilize o Swagger para explorar os endpoints, validar requisições e entender rapidamente os contratos da API.
