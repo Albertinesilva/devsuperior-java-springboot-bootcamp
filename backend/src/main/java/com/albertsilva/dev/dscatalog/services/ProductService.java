@@ -153,7 +153,7 @@ public class ProductService {
       }
 
       entity = productRepository.save(entity);
-      logger.info("Produto atualizado com sucesso. id: {}", id);
+      logger.info("Serviço Produto atualizado com sucesso. id: {}", id);
       return productMapper.toResponse(entity);
 
     } catch (EntityNotFoundException e) {
@@ -201,34 +201,122 @@ public class ProductService {
    * </p>
    * <ol>
    * <li>Remove todas as categorias atuais do produto</li>
-   * <li>Busca cada categoria pelo ID</li>
-   * <li>Adiciona ao produto</li>
+   * <li>Busca todas as categorias em uma única consulta utilizando
+   * {@code findAllById}</li>
+   * <li>Valida se todas as categorias foram encontradas</li>
+   * <li>Adiciona as categorias ao produto</li>
    * </ol>
    *
    * <p>
    * <b>Importante:</b>
    * </p>
    * <ul>
+   * <li>Evita o problema de N+1 queries (melhor performance)</li>
+   * <li>Garante consistência ao validar se todos os IDs existem</li>
    * <li>O relacionamento é controlado pelo backend</li>
-   * <li>Evita inconsistência de dados</li>
-   * <li>Segue padrão REST correto</li>
+   * <li>Segue boas práticas de aplicações corporativas</li>
    * </ul>
    *
    * @param entity      produto
    * @param categoryIds lista de IDs de categorias
+   * @throws ResourceNotFoundException caso alguma categoria não seja encontrada
    */
   private void mapCategories(Product entity, List<Long> categoryIds) {
     entity.getCategories().clear();
 
     if (categoryIds == null || categoryIds.isEmpty()) {
-      logger.debug("Nenhuma categoria fornecida para mapear ao produto. id: {}", entity.getId());
+      logger.debug("Nenhuma categoria fornecida para mapear ao produto. id: {}",
+          entity.getId());
       return;
     }
 
-    for (Long categoryId : categoryIds) {
-      Category category = categoryRepository.getReferenceById(categoryId);
-      entity.getCategories().add(category);
-      logger.debug("Categoria mapeada ao produto. produtoId: {}, categoriaId: {}", entity.getId(), categoryId);
+    List<Category> categories = categoryRepository.findAllById(categoryIds);
+
+    if (categories.size() != categoryIds.size()) {
+      logger.warn("Uma ou mais categorias não foram encontradas. produtoId: {}",
+          entity.getId());
+      throw new ResourceNotFoundException("One or more categories not found");
     }
+
+    entity.getCategories().addAll(categories);
+
+    logger.debug("Categorias mapeadas ao produto. produtoId: {}, total: {}",
+        entity.getId(), categories.size());
   }
+
+  /**
+   * Deixei o método de mapeamento utilizando {@code getReferenceById} comentado
+   * para fins de comparação e aprendizado.
+   * 
+   * Realiza o mapeamento entre produto e categorias utilizando proxies do JPA.
+   *
+   * <p>
+   * <b>Fluxo interno:</b>
+   * </p>
+   * <ol>
+   * <li>Remove todas as categorias atuais do produto</li>
+   * <li>Para cada ID informado, obtém uma referência (proxy) da entidade
+   * {@link Category}</li>
+   * <li>Associa a referência ao produto sem executar consulta imediata</li>
+   * </ol>
+   *
+   * <p>
+   * <b>Uso de {@code getReferenceById}:</b>
+   * </p>
+   * <ul>
+   * <li>Não executa {@code SELECT} no momento da chamada</li>
+   * <li>Retorna um proxy gerenciado pelo JPA (Hibernate)</li>
+   * <li>A consulta ao banco só ocorre se algum atributo da entidade for
+   * acessado</li>
+   * <li>Melhora a performance em cenários onde apenas o relacionamento é
+   * necessário</li>
+   * </ul>
+   *
+   * <p>
+   * <b>Importante:</b>
+   * </p>
+   * <ul>
+   * <li>Não valida imediatamente se o ID existe no banco</li>
+   * <li>Uma exceção pode ser lançada posteriormente (ex: ao acessar atributos ou
+   * no flush)</li>
+   * <li>Indicado quando você já confia que os IDs são válidos</li>
+   * <li>Evita múltiplas queries (N+1) quando comparado com {@code findById}</li>
+   * </ul>
+   *
+   * <p>
+   * <b>Quando usar:</b>
+   * </p>
+   * <ul>
+   * <li>Associação de entidades (ManyToOne, ManyToMany)</li>
+   * <li>Cenários onde não é necessário carregar os dados completos</li>
+   * </ul>
+   *
+   * <p>
+   * <b>Quando NÃO usar:</b>
+   * </p>
+   * <ul>
+   * <li>Quando é necessário validar a existência do registro</li>
+   * <li>Quando será necessário acessar os dados da entidade imediatamente</li>
+   * </ul>
+   *
+   * @param entity      produto
+   * @param categoryIds lista de IDs de categorias
+   */
+  // private void mapCategories(Product entity, List<Long> categoryIds) {
+  // entity.getCategories().clear();
+
+  // if (categoryIds == null || categoryIds.isEmpty()) {
+  // logger.debug("Nenhuma categoria fornecida para mapear ao produto. id: {}",
+  // entity.getId());
+  // return;
+  // }
+
+  // for (Long categoryId : categoryIds) {
+  // Category category = categoryRepository.getReferenceById(categoryId);
+  // entity.getCategories().add(category);
+  // logger.debug("Categoria mapeada ao produto. produtoId: {}, categoriaId: {}",
+  // entity.getId(), categoryId);
+  // }
+  // }
+
 }

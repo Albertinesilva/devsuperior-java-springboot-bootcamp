@@ -248,7 +248,7 @@ public class ProductController {
 
     ProductResponse response = productService.update(id, productUpdateRequest);
 
-    logger.info("Produto atualizado com sucesso. id={}", id);
+    logger.info("Controller Produto atualizado com sucesso. id={}", id);
     return ResponseEntity.ok(response);
   }
 
