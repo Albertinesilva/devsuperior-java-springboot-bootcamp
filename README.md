@@ -1,12 +1,14 @@
-## 🚀 DevSuperior Bootcamp — Java + Spring Boot
+# 🚀 DevSuperior Bootcamp — Java + Spring Boot
 
-Este repositório documenta minha jornada de estudos no **Bootcamp DevSuperior (Spring Boot 3.0)** e **Java Spring Expert**, com foco na construção de aplicações backend robustas utilizando o ecossistema Java.
-
-O projeto está organizado por capítulos (módulos), onde cada etapa representa a evolução incremental do conhecimento, desde operações CRUD até deploy e CI/CD.
+<p style="text-align: justify;">
+<em>Este repositório documenta minha jornada de estudos no <code>Bootcamp DevSuperior (Spring Boot 3.0)</code> e <code>Java Spring Expert</code>, com foco na construção de aplicações backend robustas utilizando o ecossistema Java.
+  
+O projeto está organizado por capítulos (módulos), onde cada etapa representa a evolução incremental do conhecimento, desde operações CRUD até deploy e CI/CD.</em>
+</p>
 
 ---
 
-### 🧠 Objetivo
+## 🧠 Objetivo
 
 - Consolidar fundamentos sólidos em desenvolvimento backend
 - Aplicar boas práticas de arquitetura e design
@@ -15,7 +17,7 @@ O projeto está organizado por capítulos (módulos), onde cada etapa representa
 
 ---
 
-### 🛠️ Tecnologias e Ferramentas
+## 🛠️ Tecnologias e Ferramentas
 
 - Java
 - Spring Boot
@@ -28,7 +30,7 @@ O projeto está organizado por capítulos (módulos), onde cada etapa representa
 
 ---
 
-### ⚙️ Configurações e Práticas Aplicadas
+## ⚙️ Configurações e Práticas Aplicadas
 
 Ao longo dos capítulos, foram aplicadas configurações e práticas comuns em ambientes reais de desenvolvimento backend:
 
@@ -47,7 +49,7 @@ Esses pontos foram explorados progressivamente durante a evolução dos capítul
 
 ---
 
-### 📚 Estrutura do Estudo
+## 📚 Estrutura do Estudo
 
 Abaixo está a organização dos capítulos com acesso direto para cada etapa do aprendizado:
 
@@ -62,7 +64,7 @@ Abaixo está a organização dos capítulos com acesso direto para cada etapa do
 
 ---
 
-### 📦 Projetos Desenvolvidos
+## 📦 Projetos Desenvolvidos
 
 Durante o bootcamp, foram construídos projetos aplicando diferentes conceitos:
 
@@ -74,7 +76,7 @@ Durante o bootcamp, foram construídos projetos aplicando diferentes conceitos:
 
 ---
 
-### 📚 Referências Técnicas
+## 📚 Referências Técnicas
 
 Documentações oficiais e materiais utilizados como base para estudo e implementação:
 
@@ -108,7 +110,7 @@ Documentações oficiais e materiais utilizados como base para estudo e implemen
 
 ---
 
-### 📌 Observações
+## 📌 Observações
 
 - Cada capítulo está isolado em sua própria branch, representando a evolução incremental do projeto.
 - A branch `main` funciona como ponto central de navegação e documentação.
@@ -116,14 +118,14 @@ Documentações oficiais e materiais utilizados como base para estudo e implemen
 
 ---
 
-### 👨‍💻 Autor
+## 👨‍💻 Autor
 
 **Albert Silva de Jesus**  
 Desenvolvedor Backend Java | Spring Boot  
 
 ---
 
-### 📎 Contato
+## 📎 Contato
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-%230077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/albert-backend-java-spring-boot/)
 [![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:albertinesilva.17@gmail.com?subject=Contato%20sobre%20o%20projeto%20CAD-MOTOTAXISTA)
