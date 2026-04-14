@@ -345,6 +345,9 @@ Location: /api/v1/categories/1
 
 Retorna uma lista paginada de categorias.
 
+> ⚠️ **Observação**  
+> Este padrão de parametrização de paginação foi definido explicitamente na API com o objetivo de padronizar a comunicação com o front-end. Apesar disso, o **Spring Data** já fornece suporte nativo à paginação e ordenação por meio do `Pageable`, tornando essa configuração manual opcional. A abordagem adotada aqui prioriza clareza no contrato da API e previsibilidade para o consumo no front-end.
+
 #### 🔸 Query Params
 
 | Parâmetro    | Tipo   | Default | Descrição               |
@@ -430,7 +433,7 @@ Busca categorias por nome (case insensitive e parcial).
 ### 🔸 Exemplo
 
 ```http
-GET /api/v1/categories/search?name=eletron
+GET /api/v1/categories/search?name=eletrônicos
 ```
 
 ### 🔸 Response (200 OK)
@@ -494,7 +497,7 @@ Remove uma categoria do sistema.
 ### 🔸 Erros possíveis
 
 - 404 Not Found
-- 400 Bad Request (violação de integridade)
+- 409 Conflict (violação de integridade)
 
 ### ⚠️ Padrão de Erro
 
@@ -513,7 +516,7 @@ Remove uma categoria do sistema.
 ```json
 {
   "timestamp": "2026-04-09T18:50:44.722862600Z",
-  "status": 400,
+  "status": 409,
   "error": "Database error",
   "message": "Cannot delete resource because it has related entities",
   "path": "/api/v1/categories/1"
@@ -595,6 +598,9 @@ Location: /api/v1/products/1
 **GET** `/api/v1/products`
 
 Retorna uma lista paginada de produtos.
+
+> ⚠️ **Observação**  
+> Neste endpoint foi adotado o padrão nativo de paginação do **Spring Data**, utilizando os parâmetros `page`, `size` e `sort`. Diferentemente do endpoint de categorias, essa abordagem demonstra a forma padrão recomendada pelo framework, evidenciando como a paginação pode ser implementada de maneira mais direta com o uso de `Pageable`.
 
 ### 🔸 Query Params
 
@@ -727,7 +733,7 @@ Remove um produto do sistema.
 ### 🔸 Erros possíveis
 
 - 404 Not Found
-- 400 Bad Request (violação de integridade)
+- 409 Conflict (violação de integridade)
 
 ⚠️ Padrão de Erro
 
@@ -746,7 +752,7 @@ Todos os erros seguem um padrão unificado:
 ```json
 {
   "timestamp": "2026-04-09T18:50:44.722862600Z",
-  "status": 400,
+  "status": 409,
   "error": "Database error",
   "message": "Cannot delete resource because it has related entities",
   "path": "/api/v1/products/1"
@@ -778,7 +784,7 @@ git clone https://github.com/seu-usuario/seu-repo.git
 cd dscatalog
 
 # Executar a aplicação
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 ### ⚙️ Configuração do banco (PostgreSQL)
