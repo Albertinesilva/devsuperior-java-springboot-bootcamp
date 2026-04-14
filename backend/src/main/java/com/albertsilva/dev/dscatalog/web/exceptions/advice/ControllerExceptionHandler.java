@@ -75,7 +75,8 @@ public class ControllerExceptionHandler {
    * @return resposta padronizada contendo detalhes do erro
    */
   @ExceptionHandler(ResourceNotFoundException.class)
-  public ResponseEntity<ProblemDetails> handleResourceNotFound(ResourceNotFoundException e, HttpServletRequest request) {
+  public ResponseEntity<ProblemDetails> handleResourceNotFound(ResourceNotFoundException e,
+      HttpServletRequest request) {
     HttpStatus status = HttpStatus.NOT_FOUND;
     logger.warn("ResourceNotFoundException - path: {}, message: {}", request.getRequestURI(), e.getMessage());
     ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), ErrorType.RESOURCE_NOT_FOUND.getMessage(),
@@ -143,8 +144,9 @@ public class ControllerExceptionHandler {
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<ProblemDetails> handleDataIntegrity(DataIntegrityViolationException e,
       HttpServletRequest request) {
-    HttpStatus status = HttpStatus.BAD_REQUEST;
-    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), ErrorType.DATABASE_ERROR.getMessage(),
+    HttpStatus status = HttpStatus.CONFLICT;
+    logger.error("DataIntegrityViolationException - path: {}, message: {}", request.getRequestURI(), e.getMessage(), e);
+    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), ErrorType.CONFLIT.getMessage(),
         "Cannot delete resource because it has related entities",
         request.getRequestURI());
     return ResponseEntity.status(status).body(err);

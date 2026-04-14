@@ -2,7 +2,6 @@ package com.albertsilva.dev.dscatalog.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -156,7 +155,8 @@ public class CategoryService {
    * Remove uma categoria do sistema.
    *
    * <p>
-   * Antes de deletar, valida se a categoria existe.
+   * Antes de deletar, a existência da categoria é validada através de uma busca
+   * no banco de dados. Caso não exista, uma exceção é lançada.
    * </p>
    *
    * <p>
@@ -164,7 +164,41 @@ public class CategoryService {
    * </p>
    * <ul>
    * <li>Categoria não encontrada → {@link ResourceNotFoundException}</li>
-   * <li>Violação de integridade → {@link DatabaseException}</li>
+   * <li>Violação de integridade → tratada globalmente no {@code ControllerAdvice}
+   * (ex: {@code DataIntegrityViolationException})</li>
+   * </ul>
+   *
+   * <p>
+   * <b>Decisões de implementação:</b>
+   * </p>
+   * <ul>
+   * <li>
+   * Não foi utilizado {@code existsById(id)} para evitar uma consulta adicional
+   * ao banco,
+   * já que {@code findById(id)} já cumpre esse papel de forma mais eficiente.
+   * </li>
+   * <li>
+   * Não foi utilizado {@code @Transactional(propagation = Propagation.SUPPORTS)},
+   * pois operações de escrita (DELETE) devem ocorrer dentro de uma transação
+   * ativa
+   * para garantir consistência e integridade dos dados.
+   * </li>
+   * <li>
+   * Não foi utilizado {@code categoryRepository.flush()}, pois a sincronização
+   * com o banco
+   * deve ocorrer naturalmente no commit da transação. Forçar o flush pode
+   * impactar
+   * negativamente a performance e não é uma prática comum em cenários padrão.
+   * </li>
+   * <li>
+   * Não há {@code try/catch} para {@code DataIntegrityViolationException} no
+   * método,
+   * pois essa exceção pode ocorrer no momento do commit da transação. O
+   * tratamento é
+   * centralizado no {@code @RestControllerAdvice}, garantindo maior
+   * confiabilidade
+   * e padronização das respostas da API.
+   * </li>
    * </ul>
    *
    * @param id identificador da categoria
@@ -179,14 +213,8 @@ public class CategoryService {
           return new ResourceNotFoundException("Entity not found id: " + id);
         });
 
-    try {
-      categoryRepository.delete(entity);
-      logger.info("Categoria deletada com sucesso. id: {}", id);
-
-    } catch (DataIntegrityViolationException e) {
-      logger.error("Erro de integridade ao deletar categoria. id: {}", id);
-      throw new DatabaseException("Integrity violation: cannot delete category with related entities");
-    }
+    categoryRepository.delete(entity);
+    logger.info("Categoria deletada com sucesso. id: {}", id);
   }
 
   /**

@@ -105,16 +105,16 @@ public class CategoryController {
   public ResponseEntity<CategoryResponse> insert(@RequestBody CategoryCreateRequest categoryCreateRequest) {
     logger.debug("Recebendo requisição para criar categoria: {}", categoryCreateRequest);
 
-    CategoryResponse categoryResponse = categoryService.insert(categoryCreateRequest);
+    CategoryResponse response = categoryService.insert(categoryCreateRequest);
 
     URI uri = ServletUriComponentsBuilder
         .fromCurrentRequest()
         .path("/{id}")
-        .buildAndExpand(categoryResponse.id())
+        .buildAndExpand(response.id())
         .toUri();
 
-    logger.info("Categoria criada com sucesso. id: {}", categoryResponse.id());
-    return ResponseEntity.created(uri).body(categoryResponse);
+    logger.info("Categoria criada com sucesso. id: {}", response.id());
+    return ResponseEntity.created(uri).body(response);
   }
 
   /**
@@ -135,7 +135,7 @@ public class CategoryController {
    * </p>
    * 
    * <pre>
-   * GET /api/v1/categories?page=0&linesPerPage=10&orderBy=name&direction=ASC
+   * GET /api/v1/categories?page=0&linesPerPage=10&direction=ASC&orderBy=name
    * </pre>
    *
    * @return lista paginada de categorias
@@ -148,8 +148,8 @@ public class CategoryController {
   public ResponseEntity<Page<CategoryResponse>> findAll(
       @RequestParam(value = "page", defaultValue = "0") Integer page,
       @RequestParam(value = "linesPerPage", defaultValue = "12") Integer linesPerPage,
-      @RequestParam(value = "orderBy", defaultValue = "name") String orderBy,
-      @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
+      @RequestParam(value = "direction", defaultValue = "ASC") String direction,
+      @RequestParam(value = "orderBy", defaultValue = "name") String orderBy) {
 
     logger.debug("Buscando categorias paginadas - page: {}, size: {}, orderBy: {}, direction: {}",
         page, linesPerPage, orderBy, direction);

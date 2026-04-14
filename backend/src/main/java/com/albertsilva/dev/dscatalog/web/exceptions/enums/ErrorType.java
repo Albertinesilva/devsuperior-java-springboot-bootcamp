@@ -4,6 +4,7 @@ public enum ErrorType {
 
   RESOURCE_NOT_FOUND("Resource not found"),
   DATABASE_ERROR("Database error"),
+  CONFLIT("Conflict"),
   INTERNAL_SERVER_ERROR("Internal server error"),
   UNEXPECTED_ERROR_OCCURRED("Unexpected error occurred");
 
