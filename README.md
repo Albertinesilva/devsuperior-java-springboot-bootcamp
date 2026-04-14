@@ -122,7 +122,7 @@ A aplicação contempla a organização em camadas: `controller`, `service` e `r
 
 A aplicação **DSCatalog** segue a arquitetura tradicional **Controller → Service → Repository**, organizada em camadas bem definidas para garantir **manutenção mais fácil, testabilidade e escalabilidade**.
 
-<img src="https://raw.githubusercontent.com/Albertinesilva/devsuperior-java-springboot-bootcamp/chapter-01-crud/backend/src/main/resources/static/assets/imgs/padrao-camadas.png" width="100%">
+<img src="https://raw.githubusercontent.com/Albertinesilva/devsuperior-java-springboot-bootcamp/chapter-01-crud/docs/assets/imgs/padrao-camadas.png" width="100%">
 
 ## Padrão de Camadas
 
