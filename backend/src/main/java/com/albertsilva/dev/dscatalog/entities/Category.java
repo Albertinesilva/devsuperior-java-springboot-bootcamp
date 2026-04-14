@@ -25,7 +25,8 @@ import jakarta.persistence.PreUpdate;
  * <b>Regras de negócio:</b>
  * </p>
  * <ul>
- * <li>O nome da categoria deve representar claramente o agrupamento entre os produtos</li>
+ * <li>O nome da categoria deve representar claramente o agrupamento entre os
+ * produtos</li>
  * <li>A categoria pode estar ativa ou inativa</li>
  * </ul>
  *

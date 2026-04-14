@@ -40,11 +40,11 @@ import java.util.List;
  * @param categoryIds lista de IDs das categorias
  */
 public record ProductCreateRequest(
-                String name,
-                String description,
-                Boolean active,
-                Double price,
-                String imgUrl,
-                Instant date,
-                List<Long> categoryIds) {
+    String name,
+    String description,
+    Boolean active,
+    Double price,
+    String imgUrl,
+    Instant date,
+    List<Long> categoryIds) {
 }

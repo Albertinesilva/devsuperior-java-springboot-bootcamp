@@ -28,11 +28,11 @@ import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
  * @param categories  lista de categorias (geralmente vazia neste DTO)
  */
 public record ProductResponse(
-        Long id,
-        String name,
-        String description,
-        Double price,
-        String imgUrl,
-        Instant date,
-        List<CategoryResponse> categories) {
+                Long id,
+                String name,
+                String description,
+                Double price,
+                String imgUrl,
+                Instant date,
+                List<CategoryResponse> categories) {
 }

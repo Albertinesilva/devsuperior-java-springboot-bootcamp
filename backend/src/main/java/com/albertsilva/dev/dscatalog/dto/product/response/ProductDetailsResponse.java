@@ -43,11 +43,11 @@ import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
  * @param categories  categorias completas
  */
 public record ProductDetailsResponse(
-        Long id,
-        String name,
-        String description,
-        Double price,
-        String imgUrl,
-        Instant date,
-        List<CategoryResponse> categories) {
+                Long id,
+                String name,
+                String description,
+                Double price,
+                String imgUrl,
+                Instant date,
+                List<CategoryResponse> categories) {
 }

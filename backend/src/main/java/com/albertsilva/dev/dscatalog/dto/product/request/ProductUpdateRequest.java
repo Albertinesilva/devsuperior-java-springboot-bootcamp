@@ -27,11 +27,11 @@ import java.util.List;
  * @param categoryIds novos IDs de categorias
  */
 public record ProductUpdateRequest(
-        String name,
-        String description,
-        Boolean active,
-        Double price,
-        String imgUrl,
-        Instant date,
-        List<Long> categoryIds) {
+                String name,
+                String description,
+                Boolean active,
+                Double price,
+                String imgUrl,
+                Instant date,
+                List<Long> categoryIds) {
 }
