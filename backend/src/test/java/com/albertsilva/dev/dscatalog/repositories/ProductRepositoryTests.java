@@ -1,13 +1,12 @@
 package com.albertsilva.dev.dscatalog.repositories;
 
-import java.util.Optional;
-
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
-import com.albertsilva.dev.dscatalog.entities.Product;
+import com.albertsilva.dev.dscatalog.factory.ProductFactory;
 
 @DataJpaTest
 public class ProductRepositoryTests {
@@ -16,19 +15,17 @@ public class ProductRepositoryTests {
   private ProductRepository repository;
 
   @Test
+  @DisplayName("Delete should delete object when id exists")
   public void deleteShouldDeleteObjectWhenIdExists() {
-
     // Arrange
-    Long existingId = 1L;
+    Long existingId = repository.save(ProductFactory.createProduct()).getId();
 
     // Act
     repository.deleteById(existingId);
     repository.flush();
 
     // Assert
-    Assertions.assertFalse(repository.existsById(existingId));
+    Assertions.assertThat(repository.existsById(existingId)).as("Product should be deleted when id exists").isFalse();
 
-    // Optional<Product> result = repository.findById(existingId);
-    // Assertions.assertFalse(result.isPresent());
   }
 }
