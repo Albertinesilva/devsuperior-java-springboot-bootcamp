@@ -147,6 +147,15 @@ public class Product implements Serializable {
     this.active = active;
   }
 
+  public Product(String name, String description, Double price, String imgUrl, Instant date, boolean active) {
+    this.name = name;
+    this.description = description;
+    this.price = price;
+    this.imgUrl = imgUrl;
+    this.date = date;
+    this.active = active;
+  }
+
   /**
    * @return identificador único do produto
    */

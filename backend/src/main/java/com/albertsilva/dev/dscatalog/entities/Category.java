@@ -113,6 +113,12 @@ public class Category implements Serializable {
     this.active = active;
   }
 
+  public Category(String name, String description, boolean active) {
+    this.name = name;
+    this.description = description;
+    this.active = active;
+  }
+
   /**
    * @return identificador único da categoria
    */
