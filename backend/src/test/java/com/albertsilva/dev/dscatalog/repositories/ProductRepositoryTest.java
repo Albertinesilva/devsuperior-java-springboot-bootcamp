@@ -15,7 +15,7 @@ import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.factory.ProductFactory;
 
 @DataJpaTest
-public class ProductRepositoryTests {
+public class ProductRepositoryTest {
 
   @Autowired
   private TestEntityManager entityManager;
