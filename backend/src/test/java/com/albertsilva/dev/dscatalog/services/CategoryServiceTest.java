@@ -19,11 +19,14 @@ import org.springframework.data.domain.Pageable;
 
 import com.albertsilva.dev.dscatalog.dto.category.mapper.CategoryMapper;
 import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.entities.Category;
 import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @DisplayName("Tests for CategoryService")
 @ExtendWith(MockitoExtension.class)
@@ -163,7 +166,7 @@ public class CategoryServiceTest {
     Mockito.verify(categoryMapper).toResponsePage(page);
   }
 
-    @Test
+  @Test
   @DisplayName("Should insert category")
   void insertShouldSaveCategory() {
 
@@ -194,5 +197,58 @@ public class CategoryServiceTest {
     Mockito.verify(categoryMapper).toResponse(category);
   }
 
+  @Test
+  @DisplayName("Should update category when id exists")
+  void updateShouldUpdateCategoryWhenIdExists() {
+
+    // Arrange
+    Category category = CategoryFactory.createCategory();
+    category.setId(existingId);
+
+    CategoryUpdateRequest request = Mockito.mock(CategoryUpdateRequest.class);
+
+    CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
+
+    Mockito.when(repository.getReferenceById(existingId)).thenReturn(category);
+
+    Mockito.when(repository.save(category)).thenReturn(category);
+
+    Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
+
+    // Act
+    CategoryResponse result = service.update(existingId, request);
+
+    // Assert (state)
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(expectedResponse, result);
+
+    // Verify (behavior)
+    Mockito.verify(repository).getReferenceById(existingId);
+    Mockito.verify(categoryMapper).updateEntity(request, category);
+    Mockito.verify(repository).save(category);
+    Mockito.verify(categoryMapper).toResponse(category);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when updating non existing id")
+  void updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+    // Arrange
+    CategoryUpdateRequest request = Mockito.mock(CategoryUpdateRequest.class);
+
+    Mockito.when(repository.getReferenceById(nonExistingId)).thenThrow(EntityNotFoundException.class);
+
+    // Act
+    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+      service.update(nonExistingId, request);
+    });
+
+    // Assert (state)
+    Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+
+    // Verify (behavior)
+    Mockito.verify(repository).getReferenceById(nonExistingId);
+    Mockito.verify(repository, Mockito.never()).save(Mockito.any());
+  }
 
 }
