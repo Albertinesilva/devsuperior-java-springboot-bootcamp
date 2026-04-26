@@ -1,5 +1,7 @@
 package com.albertsilva.dev.dscatalog.repositories;
 
+import java.util.Optional;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,6 +120,35 @@ public class CategoryRepositoryTest {
 
     // Assert
     Assertions.assertThat(category.getName()).as("Category name should be updated").isEqualTo("Updated Category");
+  }
+
+  @Test
+  @DisplayName("FindById should return non empty optional when id exists")
+  void findByIdShouldReturnNonEmptyOptionalWhenIdExists() {
+
+    // Arrange
+    Category category = categoryRepository.save(CategoryFactory.createCategory());
+
+    // Act
+    Optional<Category> result = categoryRepository.findById(category.getId());
+
+    // Assert
+    Assertions.assertThat(result).as("Category should be found for existing id").isPresent().contains(category);
+  }
+
+  @Test
+  @DisplayName("FindById should return empty optional when id does not exist")
+  void findByIdShouldReturnEmptyOptionalWhenIdDoesNotExist() {
+
+    // Arrange
+    Category category = categoryRepository.save(CategoryFactory.createCategory());
+    Long nonExistingId = category.getId() + 1000L;
+
+    // Act
+    Optional<Category> result = categoryRepository.findById(nonExistingId);
+
+    // Assert
+    Assertions.assertThat(result).as("Category should not be found for non existing id").isEmpty();
   }
 
 }
