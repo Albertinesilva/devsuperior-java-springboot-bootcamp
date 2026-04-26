@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.albertsilva.dev.dscatalog.dto.category.mapper.CategoryMapper;
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.entities.Category;
 import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
@@ -161,5 +162,37 @@ public class CategoryServiceTest {
     Mockito.verify(repository).findAll(pageable);
     Mockito.verify(categoryMapper).toResponsePage(page);
   }
+
+    @Test
+  @DisplayName("Should insert category")
+  void insertShouldSaveCategory() {
+
+    // Arrange
+    CategoryCreateRequest request = Mockito.mock(CategoryCreateRequest.class);
+
+    Category category = CategoryFactory.createCategory();
+    category.setId(existingId);
+
+    CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
+
+    Mockito.when(categoryMapper.toEntity(request)).thenReturn(category);
+
+    Mockito.when(repository.save(category)).thenReturn(category);
+
+    Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
+
+    // Act
+    CategoryResponse result = service.insert(request);
+
+    // Assert (state)
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(expectedResponse, result);
+
+    // Verify (behavior)
+    Mockito.verify(categoryMapper).toEntity(request);
+    Mockito.verify(repository).save(category);
+    Mockito.verify(categoryMapper).toResponse(category);
+  }
+
 
 }
