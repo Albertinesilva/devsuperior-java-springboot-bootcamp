@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -136,6 +137,29 @@ public class CategoryServiceTest {
     // Verify (behavior)
     Mockito.verify(repository).findById(nonExistingId);
     Mockito.verify(categoryMapper, Mockito.never()).toResponse(Mockito.any());
+  }
+
+  @Test
+  @DisplayName("Should return paged categories")
+  void findAllPagedShouldReturnPage() {
+
+    // Arrange
+    Page<CategoryResponse> expectedPage = new PageImpl<>(List.of());
+
+    Mockito.when(repository.findAll(pageable)).thenReturn(page);
+
+    Mockito.when(categoryMapper.toResponsePage(page)).thenReturn(expectedPage);
+
+    // Act
+    Page<CategoryResponse> result = service.findAllPaged(pageable);
+
+    // Assert (state)
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(expectedPage, result);
+
+    // Verify (behavior)
+    Mockito.verify(repository).findAll(pageable);
+    Mockito.verify(categoryMapper).toResponsePage(page);
   }
 
 }
