@@ -7,6 +7,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 
 import com.albertsilva.dev.dscatalog.entities.Category;
@@ -95,7 +97,7 @@ public class CategoryRepositoryTest {
     long countBefore = categoryRepository.count();
 
     Category category = CategoryFactory.createCategory();
-    category.setId(category.getId()); 
+    category.setId(category.getId());
 
     // Act
     category = categoryRepository.save(category);
@@ -149,6 +151,44 @@ public class CategoryRepositoryTest {
 
     // Assert
     Assertions.assertThat(result).as("Category should not be found for non existing id").isEmpty();
+  }
+
+  @Test
+  @DisplayName("SearchByName should return categories containing name ignoring case")
+  void findByNameContainingIgnoreCaseShouldReturnMatchingCategories() {
+
+    // Arrange
+    Category category = CategoryFactory.createCategory();
+    category.setName("Electronics");
+
+    categoryRepository.save(category);
+
+    Pageable pageable = PageRequest.of(0, 10);
+
+    // Act
+    Page<Category> result = categoryRepository.findByNameContainingIgnoreCase("elec", pageable);
+
+    // Assert
+    Assertions.assertThat(result.getContent()).as("Search should return categories matching partial name ignoring case")
+        .isNotEmpty();
+
+    Assertions.assertThat(result.getContent().get(0).getName()).isEqualTo("Electronics");
+  }
+
+  @Test
+  @DisplayName("SearchByName should return empty page when no category matches")
+  void findByNameContainingIgnoreCaseShouldReturnEmptyPageWhenNoMatch() {
+
+    // Arrange
+    categoryRepository.save(CategoryFactory.createCategory());
+
+    Pageable pageable = PageRequest.of(0, 10);
+
+    // Act
+    Page<Category> result = categoryRepository.findByNameContainingIgnoreCase("NonExistingCategory", pageable);
+
+    // Assert
+    Assertions.assertThat(result.getContent()).as("Search should return empty page when no category matches").isEmpty();
   }
 
 }
