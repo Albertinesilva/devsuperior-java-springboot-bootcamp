@@ -1,7 +1,6 @@
 package com.albertsilva.dev.dscatalog.services;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
@@ -14,13 +13,21 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import com.albertsilva.dev.dscatalog.dto.product.mapper.ProductMapper;
+import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse;
+import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.entities.Product;
 import com.albertsilva.dev.dscatalog.factory.ProductFactory;
 import com.albertsilva.dev.dscatalog.repositories.ProductRepository;
 import com.albertsilva.dev.dscatalog.services.exceptions.DatabaseException;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
 
+// Meus testes unitários validam fluxo, estado, comportamento e tratamento de exceções utilizando JUnit e Mockito.
 @DisplayName("Tests for ProductService")
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceTest {
@@ -31,15 +38,22 @@ public class ProductServiceTest {
   @Mock
   private ProductRepository repository;
 
+  @Mock
+  private ProductMapper productMapper;
+
   private Long existingId;
   private Long nonExistingId;
   private Long dependentId;
+  private Pageable pageable;
+  private PageImpl<Product> page;
 
   @BeforeEach
   void setUp() throws Exception {
     existingId = 1L;
     nonExistingId = 1000L;
     dependentId = 4L;
+    pageable = PageRequest.of(0, 10);
+    page = new PageImpl<>(List.of(ProductFactory.createProduct()));
   }
 
   @Test
@@ -52,12 +66,16 @@ public class ProductServiceTest {
 
     Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
 
-    // Act & Assert
+    // Act
     Assertions.assertDoesNotThrow(() -> {
       service.delete(existingId);
     });
 
-    // Assert (Behavior Verification
+    // Assert (state)
+    // Não retorna pois o método delete é void.
+
+    // Verify (behavior)
+    Mockito.verify(repository).findById(existingId);
     Mockito.verify(repository).delete(product);
   }
 
@@ -66,15 +84,18 @@ public class ProductServiceTest {
   void deleteShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
 
     // Arrange
-    Mockito.when(repository.findById(nonExistingId))
-        .thenReturn(Optional.empty());
+    Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
 
-    // Act & Assert
-    assertThrows(ResourceNotFoundException.class, () -> {
+    // Act
+    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
       service.delete(nonExistingId);
     });
 
-    // Assert (Behavior Verification
+    // Assert (state)
+    Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+
+    // Verify (behavior)
+    Mockito.verify(repository).findById(nonExistingId);
     Mockito.verify(repository, Mockito.never()).delete(Mockito.any());
   }
 
@@ -90,12 +111,86 @@ public class ProductServiceTest {
 
     Mockito.doThrow(DataIntegrityViolationException.class).when(repository).delete(product);
 
-    // Act & Assert
-    assertThrows(DatabaseException.class, () -> {
+    // Act
+    DatabaseException exception = Assertions.assertThrows(DatabaseException.class, () -> {
       service.delete(dependentId);
     });
 
-    // Assert (Behavior Verification
+    // Assert (state)
+    Assertions.assertEquals("Integrity violation: cannot delete category with related entities",
+        exception.getMessage());
+
+    // Verify (behavior)
+    Mockito.verify(repository).findById(dependentId);
     Mockito.verify(repository).delete(product);
+  }
+
+  @Test
+  @DisplayName("Should return product when id exists")
+  void findByIdShouldReturnProductWhenIdExists() {
+
+    // Arrange
+    Product product = ProductFactory.createProduct();
+    product.setId(existingId);
+
+    ProductDetailsResponse productDetails = Mockito.mock(ProductDetailsResponse.class);
+
+    Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
+
+    Mockito.when(productMapper.toDetailsResponse(product)).thenReturn(productDetails);
+
+    // Act
+    ProductDetailsResponse response = service.findById(existingId);
+
+    // Assert (state)
+    Assertions.assertNotNull(response);
+    Assertions.assertEquals(productDetails, response);
+
+    // Verify (behavior)
+    Mockito.verify(repository).findById(existingId);
+    Mockito.verify(productMapper).toDetailsResponse(product);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when finding by non existing id")
+  void findByIdShouldThrowExceptionWhenIdDoesNotExist() {
+
+    // Arrange
+    Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+    // Act
+    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+      service.findById(nonExistingId);
+    });
+
+    // Assert (state)
+    Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+
+    // Verify (behavior)
+    Mockito.verify(repository).findById(nonExistingId);
+    Mockito.verify(productMapper, Mockito.never()).toDetailsResponse(Mockito.any());
+  }
+
+  @Test
+  @DisplayName("Should return paged products")
+  void findAllPagedShouldReturnPage() {
+
+    // Arrange
+    Page<ProductResponse> expectedPage = new PageImpl<>(List.of());
+
+    Mockito.when(repository.findAll(Mockito.any(Pageable.class))).thenReturn(page);
+
+    Mockito.when(productMapper.toResponsePage(page)).thenReturn(expectedPage);
+
+    // Act
+    Page<ProductResponse> result = service.findAllPaged(pageable);
+
+    // Assert (state)
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(expectedPage, result);
+
+    // Verify (behavior)
+    Mockito.verify(repository).findAll(pageable);
+    Mockito.verify(productMapper).toResponsePage(page);
   }
 }
