@@ -19,6 +19,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.albertsilva.dev.dscatalog.dto.product.mapper.ProductMapper;
+import com.albertsilva.dev.dscatalog.dto.product.request.ProductCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.product.request.ProductUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.entities.Product;
@@ -27,7 +29,10 @@ import com.albertsilva.dev.dscatalog.repositories.ProductRepository;
 import com.albertsilva.dev.dscatalog.services.exceptions.DatabaseException;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
 
+import jakarta.persistence.EntityNotFoundException;
+
 // Meus testes unitários validam fluxo, estado, comportamento e tratamento de exceções utilizando JUnit e Mockito.
+// Nos testes unitários, mocko exceções técnicas da camada inferior para validar se a camada de serviço faz corretamente a tradução para exceções de negócio.
 @DisplayName("Tests for ProductService")
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceTest {
@@ -192,5 +197,95 @@ public class ProductServiceTest {
     // Verify (behavior)
     Mockito.verify(repository).findAll(pageable);
     Mockito.verify(productMapper).toResponsePage(page);
+  }
+
+  @Test
+  @DisplayName("Should insert product")
+  void insertShouldSaveProduct() {
+
+    // Arrange
+    ProductCreateRequest request = Mockito.mock(ProductCreateRequest.class);
+
+    Product product = ProductFactory.createProduct();
+    product.setId(existingId);
+
+    ProductResponse expectedResponse = Mockito.mock(ProductResponse.class);
+
+    Mockito.when(productMapper.toEntity(request)).thenReturn(product);
+
+    Mockito.when(request.categoryIds()).thenReturn(List.of());
+
+    Mockito.when(repository.save(product)).thenReturn(product);
+
+    Mockito.when(productMapper.toResponse(product)).thenReturn(expectedResponse);
+
+    // Act
+    ProductResponse result = service.insert(request);
+
+    // Assert (state)
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(expectedResponse, result);
+
+    // Verify (behavior)
+    Mockito.verify(productMapper).toEntity(request);
+    Mockito.verify(repository).save(product);
+    Mockito.verify(productMapper).toResponse(product);
+  }
+
+  @Test
+  @DisplayName("Should update product when id exists")
+  void updateShouldUpdateProductWhenIdExists() {
+
+    // Arrange
+    Product product = ProductFactory.createProduct();
+    product.setId(existingId);
+
+    ProductUpdateRequest dto = Mockito.mock(ProductUpdateRequest.class);
+
+    ProductResponse expectedResponse = Mockito.mock(ProductResponse.class);
+
+    Mockito.when(dto.categoryIds()).thenReturn(null);
+
+    Mockito.when(repository.getReferenceById(existingId)).thenReturn(product);
+
+    Mockito.when(repository.save(product)).thenReturn(product);
+
+    Mockito.when(productMapper.toResponse(product)).thenReturn(expectedResponse);
+
+    // Act
+    ProductResponse result = service.update(existingId, dto);
+
+    // Assert (state)
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(expectedResponse, result);
+
+    // Verify (behavior)
+    Mockito.verify(repository).getReferenceById(existingId);
+    Mockito.verify(productMapper).updateEntity(dto, product);
+    Mockito.verify(repository).save(product);
+    Mockito.verify(productMapper).toResponse(product);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when updating non existing id")
+  void updateShouldThrowExceptionWhenIdDoesNotExist() {
+
+    // Arrange
+    ProductUpdateRequest dto = Mockito.mock(ProductUpdateRequest.class);
+
+    Mockito.when(repository.getReferenceById(nonExistingId)).thenThrow(EntityNotFoundException.class);
+
+    // Act
+    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+      service.update(nonExistingId, dto);
+    });
+
+    // Assert (state)
+    Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+
+    // Verify (behavior)
+    Mockito.verify(repository).getReferenceById(nonExistingId);
+    Mockito.verify(productMapper, Mockito.never()).updateEntity(Mockito.any(), Mockito.any());
+    Mockito.verify(repository, Mockito.never()).save(Mockito.any());
   }
 }
