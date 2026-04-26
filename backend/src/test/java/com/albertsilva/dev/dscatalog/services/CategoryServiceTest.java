@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.albertsilva.dev.dscatalog.dto.category.mapper.CategoryMapper;
+import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.entities.Category;
 import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
@@ -89,6 +90,52 @@ public class CategoryServiceTest {
     // Verify (behavior)
     Mockito.verify(repository).findById(nonExistingId);
     Mockito.verify(repository, Mockito.never()).delete(Mockito.any());
+  }
+
+  @Test
+  @DisplayName("Should return category when id exists")
+  void findByIdShouldReturnCategoryWhenIdExists() {
+
+    // Arrange
+    Category category = CategoryFactory.createCategory();
+    category.setId(existingId);
+
+    CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
+
+    Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(category));
+
+    Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
+
+    // Act
+    CategoryResponse result = service.findById(existingId);
+
+    // Assert (state)
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(expectedResponse, result);
+
+    // Verify (behavior)
+    Mockito.verify(repository).findById(existingId);
+    Mockito.verify(categoryMapper).toResponse(category);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when finding non existing id")
+  void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+    // Arrange
+    Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+    // Act
+    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+      service.findById(nonExistingId);
+    });
+
+    // Assert (state)
+    Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+
+    // Verify (behavior)
+    Mockito.verify(repository).findById(nonExistingId);
+    Mockito.verify(categoryMapper, Mockito.never()).toResponse(Mockito.any());
   }
 
 }
