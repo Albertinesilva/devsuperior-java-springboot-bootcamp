@@ -13,6 +13,7 @@ public class ProductFactory {
 
   public static final Long EXISTING_ID = 1L;
   public static final Long NON_EXISTING_ID = 1000L;
+  public static final Long COUNT_TOTAL_PRODUCTS = 25L;
 
   public static Product createProduct() {
     return new Product("Smart TV",

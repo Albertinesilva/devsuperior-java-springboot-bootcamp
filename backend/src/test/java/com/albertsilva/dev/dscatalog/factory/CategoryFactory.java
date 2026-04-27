@@ -9,6 +9,8 @@ public class CategoryFactory {
 
   public static final Long EXISTING_ID = 1L;
   public static final Long NON_EXISTING_ID = 1000L;
+  public static final Long DEPENDENT_ID = 1L;
+  public static final Long COUNT_TOTAL_PRODUCTS = 15L;
 
   public static Category createCategory() {
     Category category = new Category("Eletrônicos", "Produtos eletrônicos, como TVs, smartphones e laptops.", true);
