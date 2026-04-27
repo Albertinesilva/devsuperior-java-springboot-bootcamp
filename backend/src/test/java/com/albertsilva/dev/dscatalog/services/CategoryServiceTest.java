@@ -251,4 +251,29 @@ public class CategoryServiceTest {
     Mockito.verify(repository, Mockito.never()).save(Mockito.any());
   }
 
+  @Test
+  @DisplayName("Should search categories by name")
+  void searchByNameShouldReturnPagedCategories() {
+
+    // Arrange
+    String name = "Books";
+
+    Page<CategoryResponse> expectedPage = new PageImpl<>(List.of());
+
+    Mockito.when(repository.findByNameContainingIgnoreCase(name, pageable)).thenReturn(page);
+
+    Mockito.when(categoryMapper.toResponsePage(page)).thenReturn(expectedPage);
+
+    // Act
+    Page<CategoryResponse> result = service.searchByName(name, pageable);
+
+    // Assert (state)
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(expectedPage, result);
+
+    // Verify (behavior)
+    Mockito.verify(repository).findByNameContainingIgnoreCase(name, pageable);
+
+    Mockito.verify(categoryMapper).toResponsePage(page);
+  }
 }
