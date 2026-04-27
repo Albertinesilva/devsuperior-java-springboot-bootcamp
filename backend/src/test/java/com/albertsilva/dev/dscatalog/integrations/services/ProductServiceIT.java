@@ -3,21 +3,31 @@ package com.albertsilva.dev.dscatalog.integrations.services;
 import static com.albertsilva.dev.dscatalog.factory.ProductFactory.COUNT_TOTAL_PRODUCTS;
 import static com.albertsilva.dev.dscatalog.factory.ProductFactory.EXISTING_ID;
 import static com.albertsilva.dev.dscatalog.factory.ProductFactory.NON_EXISTING_ID;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
+import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.repositories.ProductRepository;
 import com.albertsilva.dev.dscatalog.services.ProductService;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
 
+import jakarta.transaction.Transactional;
+
 @SpringBootTest
+@Transactional
+@DisplayName("ProductService Integration Tests")
 public class ProductServiceIT {
 
   @Autowired
@@ -45,4 +55,59 @@ public class ProductServiceIT {
     // Act + Assert
     assertThrows(ResourceNotFoundException.class, () -> service.delete(NON_EXISTING_ID));
   }
+
+  @Test
+  @DisplayName("findAllPaged should return paged products when page 0 size 10")
+  void findAllPagedShouldReturnPagedProductsWhenPage0Size10() {
+
+    // Arrange
+    PageRequest pageRequest = PageRequest.of(0, 10);
+
+    // Act
+    Page<ProductResponse> result = service.findAllPaged(pageRequest);
+
+    // Assert
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+    assertEquals(0, result.getNumber());
+    assertEquals(10, result.getSize());
+    assertEquals(COUNT_TOTAL_PRODUCTS, result.getTotalElements());
+  }
+
+  @Test
+  @DisplayName("findAllPaged should return empty page when page does not exist")
+  void findAllPagedShouldReturnEmptyPageWhenPageDoesNotExist() {
+
+    // Arrange
+    PageRequest pageRequest = PageRequest.of(50, 10);
+
+    // Act
+    Page<ProductResponse> result = service.findAllPaged(pageRequest);
+
+    // Assert
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    assertEquals(50, result.getNumber());
+    assertEquals(10, result.getSize());
+    assertEquals(COUNT_TOTAL_PRODUCTS, result.getTotalElements());
+  }
+
+  @Test
+  @DisplayName("findAllPaged should return ordered page when sorting by name")
+  void findAllPagedShouldReturnOrderedPageWhenSortingByName() {
+
+    // Arrange
+    PageRequest pageRequest = PageRequest.of(0, 10, Sort.by("name"));
+
+    // Act
+    Page<ProductResponse> result = service.findAllPaged(pageRequest);
+
+    // Assert
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+    assertEquals("Macbook Pro", result.getContent().get(0).name());
+    assertEquals("PC Gamer", result.getContent().get(1).name());
+    assertEquals("PC Gamer Alfa", result.getContent().get(2).name());
+  }
+
 }
