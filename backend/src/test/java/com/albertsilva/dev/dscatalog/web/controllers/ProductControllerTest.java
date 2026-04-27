@@ -1,18 +1,23 @@
 package com.albertsilva.dev.dscatalog.web.controllers;
 
+import static com.albertsilva.dev.dscatalog.factory.ProductFactory.EXISTING_ID;
+import static com.albertsilva.dev.dscatalog.factory.ProductFactory.NON_EXISTING_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.ArgumentMatchers.eq;
 
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -25,6 +30,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import com.albertsilva.dev.dscatalog.dto.product.request.ProductCreateRequest;
 import com.albertsilva.dev.dscatalog.dto.product.request.ProductUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
@@ -39,6 +45,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @DisplayName("Tests for ProductController")
 class ProductControllerTest {
 
+  private static final String BASE_URL = "/api/v1/products";
+
   @Autowired
   private MockMvc mockMvc;
 
@@ -48,24 +56,15 @@ class ProductControllerTest {
   @MockitoBean
   private ProductService productService;
 
-  private Long existingId;
-  private Long nonExistingId;
-
   private Page<ProductResponse> page;
 
   private ProductResponse productResponse;
   private ProductDetailsResponse productDetailsResponse;
 
-  private static final String BASE_URL = "/api/v1/products";
-
   @BeforeEach
   void setUp() {
 
-    existingId = 1L;
-    nonExistingId = 1000L;
-
     productResponse = ProductFactory.createProductResponse();
-
     productDetailsResponse = ProductFactory.createProductDetailsResponse();
 
     page = new PageImpl<>(List.of(productResponse), PageRequest.of(0, 10), 1);
@@ -76,21 +75,23 @@ class ProductControllerTest {
   void findAllShouldReturnPage() throws Exception {
 
     // Arrange
-    when(productService.findAllPaged(ArgumentMatchers.any(Pageable.class))).thenReturn(page);
+    when(productService.findAllPaged(any(Pageable.class))).thenReturn(page);
 
     // Act
-    ResultActions resultActions = mockMvc.perform(get(BASE_URL).accept(MediaType.APPLICATION_JSON));
+    ResultActions resultActions = mockMvc
+        .perform(get(BASE_URL).accept(MediaType.APPLICATION_JSON));
 
     // Assert
     resultActions
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content[0].id").value(existingId))
+        .andExpect(jsonPath("$.content[0].id").value(EXISTING_ID))
         .andExpect(jsonPath("$.content[0].name").value(productResponse.name()))
         .andExpect(jsonPath("$.totalElements").value(1))
         .andExpect(jsonPath("$.size").value(10))
         .andExpect(jsonPath("$.number").value(0));
 
+    verify(productService).findAllPaged(any(Pageable.class));
   }
 
   @Test
@@ -98,17 +99,21 @@ class ProductControllerTest {
   void findByIdShouldReturnProductWhenIdExists() throws Exception {
 
     // Arrange
-    when(productService.findById(existingId)).thenReturn(productDetailsResponse);
+    when(productService.findById(EXISTING_ID)).thenReturn(productDetailsResponse);
 
     // Act
     ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "/{id}", existingId).accept(MediaType.APPLICATION_JSON));
+        .perform(get(BASE_URL + "/{id}", EXISTING_ID).accept(MediaType.APPLICATION_JSON));
 
     // Assert
     resultActions
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(existingId))
-        .andExpect(jsonPath("$.name").value(productDetailsResponse.name()));
+        .andExpect(jsonPath("$.id").value(EXISTING_ID))
+        .andExpect(jsonPath("$.name").value(productDetailsResponse.name()))
+        .andExpect(jsonPath("$.description").value(productDetailsResponse.description()))
+        .andExpect(jsonPath("$.price").value(productDetailsResponse.price()));
+
+    verify(productService).findById(EXISTING_ID);
   }
 
   @Test
@@ -116,15 +121,46 @@ class ProductControllerTest {
   void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
 
     // Arrange
-    when(productService.findById(nonExistingId))
-        .thenThrow(new ResourceNotFoundException("Entity not found id: " + nonExistingId));
+    when(productService.findById(NON_EXISTING_ID))
+        .thenThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID));
 
     // Act
     ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "/{id}", nonExistingId).accept(MediaType.APPLICATION_JSON));
+        .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID).accept(MediaType.APPLICATION_JSON));
 
     // Assert
     resultActions.andExpect(status().isNotFound());
+
+    verify(productService).findById(NON_EXISTING_ID);
+  }
+
+  @Test
+  @DisplayName("POST /products should insert product")
+  void insertShouldReturnCreatedProduct() throws Exception {
+
+    // Arrange
+    ProductCreateRequest request = ProductFactory.createProductCreateRequest();
+    String jsonRequest = asJson(request);
+
+    when(productService.insert(any(ProductCreateRequest.class))).thenReturn(productResponse);
+
+    // Act
+    ResultActions resultActions = mockMvc
+        .perform(post(BASE_URL)
+            .content(jsonRequest)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isCreated())
+        .andExpect(header().exists("Location"))
+        .andExpect(jsonPath("$.id").value(productResponse.id()))
+        .andExpect(jsonPath("$.name").value(productResponse.name()))
+        .andExpect(jsonPath("$.description").value(productResponse.description()))
+        .andExpect(jsonPath("$.price").value(productResponse.price()));
+
+    verify(productService).insert(any(ProductCreateRequest.class));
   }
 
   @Test
@@ -133,16 +169,15 @@ class ProductControllerTest {
 
     // Arrange
     ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
-    String jsonRequest = objectMapper.writeValueAsString(request);
+    String jsonRequest = asJson(request);
 
     ProductResponse updatedResponse = ProductFactory.createUpdatedProductResponse();
 
-    when(productService.update(eq(existingId), ArgumentMatchers.any()))
-        .thenReturn(updatedResponse);
+    when(productService.update(eq(EXISTING_ID), any(ProductUpdateRequest.class))).thenReturn(updatedResponse);
 
     // Act
-    ResultActions resultActions = mockMvc.perform(
-        patch(BASE_URL + "/{id}", existingId)
+    ResultActions resultActions = mockMvc
+        .perform(patch(BASE_URL + "/{id}", EXISTING_ID)
             .content(jsonRequest)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON));
@@ -151,7 +186,11 @@ class ProductControllerTest {
     resultActions
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(updatedResponse.id()))
-        .andExpect(jsonPath("$.name").value(updatedResponse.name()));
+        .andExpect(jsonPath("$.name").value(updatedResponse.name()))
+        .andExpect(jsonPath("$.description").value(updatedResponse.description()))
+        .andExpect(jsonPath("$.price").value(updatedResponse.price()));
+
+    verify(productService).update(eq(EXISTING_ID), any(ProductUpdateRequest.class));
   }
 
   @Test
@@ -160,18 +199,25 @@ class ProductControllerTest {
 
     // Arrange
     ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
+    String jsonRequest = asJson(request);
 
-    String jsonRequest = objectMapper.writeValueAsString(request);
+    when(productService.update(eq(NON_EXISTING_ID), any(ProductUpdateRequest.class)))
+        .thenThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID));
 
-    when(productService.update(eq(nonExistingId), ArgumentMatchers.any()))
-        .thenThrow(new ResourceNotFoundException("Entity not found id: " + nonExistingId));
+    // Act
+    ResultActions resultActions = mockMvc
+        .perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
+            .content(jsonRequest)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON));
 
-    // Act + Assert
-    mockMvc.perform(patch(BASE_URL + "/{id}", nonExistingId)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isNotFound());
+    // Assert
+    resultActions.andExpect(status().isNotFound());
+
+    verify(productService).update(eq(NON_EXISTING_ID), any(ProductUpdateRequest.class));
   }
 
+  private String asJson(Object object) throws Exception {
+    return objectMapper.writeValueAsString(object);
+  }
 }
