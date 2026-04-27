@@ -27,6 +27,7 @@ import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.factory.ProductFactory;
 import com.albertsilva.dev.dscatalog.services.ProductService;
+import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
 import com.albertsilva.dev.dscatalog.web.exceptions.advice.ControllerExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -85,6 +86,40 @@ class ProductControllerTest {
         .andExpect(jsonPath("$.size").value(10))
         .andExpect(jsonPath("$.number").value(0));
 
+  }
+
+  @Test
+  @DisplayName("GET /products/{id} should return product when id exists")
+  void findByIdShouldReturnProductWhenIdExists() throws Exception {
+
+    // Arrange
+    when(productService.findById(existingId)).thenReturn(productDetailsResponse);
+
+    // Act
+    ResultActions resultActions = mockMvc
+        .perform(get("/api/v1/products/{id}", existingId).accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(existingId))
+        .andExpect(jsonPath("$.name").value("Smart TV"));
+  }
+
+  @Test
+  @DisplayName("GET /products/{id} should return 404 when id does not exist")
+  void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+    // Arrange
+    when(productService.findById(nonExistingId))
+        .thenThrow(new ResourceNotFoundException("Entity not found id: " + nonExistingId));
+
+    // Act
+    ResultActions resultActions = mockMvc
+        .perform(get("/api/v1/products/{id}", nonExistingId).accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions.andExpect(status().isNotFound());
   }
 
 }
