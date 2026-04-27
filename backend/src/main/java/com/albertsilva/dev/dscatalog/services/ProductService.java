@@ -28,19 +28,25 @@ import jakarta.persistence.EntityNotFoundException;
  * Serviço responsável pelas operações de negócio relacionadas à entidade
  * {@link Product}.
  *
- * <p>
- * Gerencia produtos e sua relação com categorias, incluindo
- * regras de associação entre entidades.
- * </p>
+ * <p>Gerencia produtos e sua relação com categorias, centralizando
+ * regras de negócio, validações e associações entre entidades.</p>
  *
- * <p>
- * <b>Responsabilidades:</b>
- * </p>
+ * <p><b>Responsabilidades:</b></p>
  * <ul>
- * <li>CRUD de produtos</li>
- * <li>Mapeamento de categorias</li>
- * <li>Conversão entre DTOs e entidades</li>
+ *   <li>Operações de CRUD de produtos</li>
+ *   <li>Gerenciamento de relacionamento entre produtos e categorias</li>
+ *   <li>Conversão entre entidades e DTOs</li>
+ *   <li>Garantia de integridade e consistência dos dados</li>
  * </ul>
+ *
+ * @implNote
+ * Atua como camada de serviço (Service Layer), intermediando
+ * Controller, Repository e Mapper dentro da arquitetura Spring Boot.
+ *
+ * @apiNote
+ * Esta implementação exemplifica conceitos fundamentais de aplicações corporativas,
+ * como Service Layer, arquitetura em camadas, DTO Pattern,
+ * persistência com JPA e regras de negócio centralizadas.
  */
 @Service
 public class ProductService {
@@ -51,6 +57,13 @@ public class ProductService {
   private final CategoryRepository categoryRepository;
   private final ProductMapper productMapper;
 
+  /**
+ * Constrói o serviço de produtos com suas dependências principais.
+ *
+ * @param productRepository repositório de produtos
+ * @param categoryRepository repositório de categorias
+ * @param productMapper responsável pela conversão entre DTOs e entidades
+ */
   public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository,
       ProductMapper productMapper) {
     this.productRepository = productRepository;
@@ -61,8 +74,19 @@ public class ProductService {
   /**
    * Retorna uma lista paginada de produtos.
    *
+   * <p>Permite consultar produtos de forma escalável,
+   * evitando carregamento excessivo de registros.</p>
+   *
    * @param pageable informações de paginação
    * @return página de {@link ProductResponse}
+   *
+   * @implNote
+   * Utiliza paginação nativa do Spring Data JPA,
+   * melhorando performance e reduzindo consumo de memória.
+   *
+   * @apiNote
+   * Esta implementação reforça conceitos importantes como:
+   * paginação, escalabilidade e otimização de consultas.
    */
   @Transactional(readOnly = true)
   public Page<ProductResponse> findAllPaged(Pageable pageable) {
@@ -73,11 +97,21 @@ public class ProductService {
   }
 
   /**
-   * Busca um produto pelo ID, incluindo suas categorias.
+   * Busca um produto pelo seu identificador.
+   *
+   * <p>Retorna os detalhes completos do produto,
+   * incluindo categorias associadas.</p>
    *
    * @param id identificador do produto
    * @return detalhes completos do produto
    * @throws ResourceNotFoundException caso o produto não exista
+   *
+   * @implNote
+   * Utiliza {@code findById(id)}, realizando consulta imediata no banco.
+   *
+   * @apiNote
+   * Esta implementação reforça conceitos importantes como:
+   * Optional, tratamento de exceções e busca segura de entidades.
    */
   @Transactional(readOnly = true)
   public ProductDetailsResponse findById(Long id) {
@@ -94,22 +128,22 @@ public class ProductService {
   /**
    * Insere um novo produto no sistema.
    *
-   * <p>
-   * Além dos dados básicos, realiza o vínculo com categorias
-   * através da lista de IDs ({@code categoryIds}).
-   * </p>
+   * <p>Além dos dados básicos, realiza o vínculo
+   * com categorias utilizando seus respectivos IDs.</p>
    *
-   * <p>
-   * <b>Importante para iniciantes:</b>
-   * </p>
-   * <ul>
-   * <li>O JSON NÃO envia objetos de categoria</li>
-   * <li>Envia apenas os IDs</li>
-   * <li>O backend faz o relacionamento</li>
-   * </ul>
+   * <p>O frontend envia apenas IDs das categorias,
+   * enquanto o backend resolve o relacionamento completo.</p>
    *
-   * @param productCreateRequest dados do produto
+   * @param productCreateRequest dados para criação do produto
    * @return produto criado
+   *
+   * @implNote
+   * Utiliza conversão DTO → Entity e mapeamento controlado
+   * de categorias para garantir integridade relacional.
+   *
+   * @apiNote
+   * Esta implementação reforça conceitos importantes como:
+   * DTO Pattern, relacionamento ManyToMany e persistência.
    */
   @Transactional
   public ProductResponse insert(ProductCreateRequest productCreateRequest) {
@@ -122,22 +156,30 @@ public class ProductService {
   }
 
   /**
-   * Atualiza um produto existente.
+   * Atualiza parcialmente um produto existente.
    *
-   * <p>
-   * A atualização é parcial e permite também atualizar
-   * as categorias associadas.
-   * </p>
+   * <p>Permite modificar atributos básicos e,
+   * opcionalmente, substituir as categorias associadas.</p>
    *
-   * <p>
-   * Se {@code categoryIds} for informado, as categorias atuais
-   * são substituídas pelas novas.
-   * </p>
+   * <p>Quando {@code categoryIds} é informado,
+   * as categorias atuais são removidas e substituídas
+   * pelas novas categorias fornecidas.</p>
    *
-   * @param id  identificador do produto
-   * @param dto dados para atualização
+   * @param id identificador do produto
+   * @param dto dados para atualização parcial
    * @return produto atualizado
    * @throws ResourceNotFoundException caso o produto não exista
+   *
+   * @implNote
+   * Utiliza {@code getReferenceById(id)} para obter uma referência lazy
+   * (proxy) da entidade, evitando consulta imediata ao banco.
+   *
+   * <p>O proxy é carregado apenas quando atributos da entidade
+   * são acessados, reduzindo consultas desnecessárias.</p>
+   *
+   * @apiNote
+   * Esta implementação reforça conceitos importantes como:
+   * JPA Proxy, Lazy Loading, Performance e Contexto de Persistência.
    */
   @Transactional
   public ProductResponse update(Long id, ProductUpdateRequest dto) {
@@ -163,15 +205,22 @@ public class ProductService {
   }
 
   /**
-   * Remove um produto do sistema.
+   * Remove um produto existente do sistema.
    *
-   * <p>
-   * Valida existência antes da exclusão.
-   * </p>
+   * <p>Valida previamente a existência da entidade
+   * antes da exclusão.</p>
    *
    * @param id identificador do produto
-   * @throws ResourceNotFoundException se não existir
-   * @throws DatabaseException         em caso de violação de integridade
+   * @throws ResourceNotFoundException caso o produto não exista
+   * @throws DatabaseException em caso de violação de integridade
+   *
+   * @implNote
+   * Garante segurança ao validar existência antes do delete
+   * e trata exceções de integridade referencial.
+   *
+   * @apiNote
+   * Esta implementação reforça conceitos importantes como:
+   * exclusão segura, integridade de dados e tratamento de exceções.
    */
   @Transactional
   public void delete(Long id) {
@@ -189,37 +238,33 @@ public class ProductService {
 
     } catch (DataIntegrityViolationException e) {
       logger.error("Erro de integridade ao deletar produto. id: {}", id);
-      throw new DatabaseException("Integrity violation: cannot delete category with related entities");
+      throw new DatabaseException("Integrity violation: cannot delete product with related entities");
     }
   }
 
   /**
    * Realiza o mapeamento entre produto e categorias.
    *
-   * <p>
-   * <b>Fluxo interno:</b>
-   * </p>
-   * <ol>
-   * <li>Remove todas as categorias atuais do produto</li>
-   * <li>Busca todas as categorias em uma única consulta utilizando
-   * {@code findAllById}</li>
-   * <li>Valida se todas as categorias foram encontradas</li>
-   * <li>Adiciona as categorias ao produto</li>
-   * </ol>
+   * <p>Remove categorias antigas e substitui
+   * pelas categorias informadas.</p>
    *
-   * <p>
-   * <b>Importante:</b>
-   * </p>
-   * <ul>
-   * <li>Evita o problema de N+1 queries (melhor performance)</li>
-   * <li>Garante consistência ao validar se todos os IDs existem</li>
-   * <li>O relacionamento é controlado pelo backend</li>
-   * <li>Segue boas práticas de aplicações corporativas</li>
-   * </ul>
+   * <p>Valida se todos os IDs recebidos existem
+   * antes de concluir a associação.</p>
    *
-   * @param entity      produto
+   * @param entity produto a ser associado
    * @param categoryIds lista de IDs de categorias
-   * @throws ResourceNotFoundException caso alguma categoria não seja encontrada
+   * @throws ResourceNotFoundException caso alguma categoria não exista
+   *
+   * @implNote
+   * Utiliza {@code findAllById} para buscar todas as categorias
+   * em lote, evitando múltiplas consultas (N+1 problem).
+   *
+   * <p>Essa abordagem melhora performance
+   * e garante consistência relacional.</p>
+   *
+   * @apiNote
+   * Esta implementação reforça conceitos importantes como:
+   * mapeamento de relacionamentos em JPA, performance JPA, N+1 queries e relacionamentos eficientes.
    */
   private void mapCategories(Product entity, List<Long> categoryIds) {
     entity.getCategories().clear();
@@ -301,6 +346,10 @@ public class ProductService {
    *
    * @param entity      produto
    * @param categoryIds lista de IDs de categorias
+   *
+   * @implNote
+   * Alternative implementation using JPA proxies retained for educational purposes.
+   * Demonstrates the use of {@code getReferenceById} for efficient relationship mapping.
    */
   // private void mapCategories(Product entity, List<Long> categoryIds) {
   // entity.getCategories().clear();
