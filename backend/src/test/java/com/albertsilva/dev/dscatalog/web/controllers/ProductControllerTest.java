@@ -4,11 +4,14 @@ import static com.albertsilva.dev.dscatalog.factory.ProductFactory.EXISTING_ID;
 import static com.albertsilva.dev.dscatalog.factory.ProductFactory.NON_EXISTING_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -215,6 +218,33 @@ class ProductControllerTest {
     resultActions.andExpect(status().isNotFound());
 
     verify(productService).update(eq(NON_EXISTING_ID), any(ProductUpdateRequest.class));
+  }
+
+  @Test
+  @DisplayName("DELETE /products/{id} should delete product when id exists")
+  void deleteShouldReturnNoContentWhenIdExists() throws Exception {
+
+    // Arrange
+    doNothing().when(productService).delete(EXISTING_ID);
+
+    // Act + Assert
+    mockMvc.perform(delete(BASE_URL + "/{id}", EXISTING_ID)).andExpect(status().isNoContent());
+
+    verify(productService).delete(EXISTING_ID);
+  }
+
+  @Test
+  @DisplayName("DELETE /products/{id} should return 404 when id does not exist")
+  void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+    // Arrange
+    doThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID)).when(productService)
+        .delete(NON_EXISTING_ID);
+
+    // Act + Assert
+    mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID)).andExpect(status().isNotFound());
+
+    verify(productService).delete(NON_EXISTING_ID);
   }
 
   private String asJson(Object object) throws Exception {
