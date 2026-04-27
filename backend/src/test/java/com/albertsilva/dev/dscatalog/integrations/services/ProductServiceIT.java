@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.repositories.ProductRepository;
 import com.albertsilva.dev.dscatalog.services.ProductService;
@@ -108,6 +109,26 @@ public class ProductServiceIT {
     assertEquals("Macbook Pro", result.getContent().get(0).name());
     assertEquals("PC Gamer", result.getContent().get(1).name());
     assertEquals("PC Gamer Alfa", result.getContent().get(2).name());
+  }
+
+  @Test
+  @DisplayName("findById should return product details when id exists")
+  void findByIdShouldReturnProductDetailsWhenIdExists() {
+
+    // Act
+    ProductDetailsResponse result = service.findById(EXISTING_ID);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(EXISTING_ID, result.id());
+  }
+
+  @Test
+  @DisplayName("findById should throw ResourceNotFoundException when id does not exist")
+  void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+    // Act + Assert
+    assertThrows(ResourceNotFoundException.class, () -> service.findById(NON_EXISTING_ID));
   }
 
 }
