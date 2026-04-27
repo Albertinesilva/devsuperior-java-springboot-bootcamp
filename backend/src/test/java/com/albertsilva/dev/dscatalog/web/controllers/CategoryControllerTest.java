@@ -31,6 +31,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.services.CategoryService;
@@ -120,6 +121,34 @@ public class CategoryControllerTest {
         .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID)).andExpect(status().isNotFound());
 
     verify(categoryService).findById(NON_EXISTING_ID);
+  }
+
+  @Test
+  @DisplayName("POST /categories should insert category")
+  void insertShouldReturnCreatedCategory() throws Exception {
+
+    CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
+    String jsonRequest = asJson(request);
+
+    when(categoryService.insert(any(CategoryCreateRequest.class))).thenReturn(categoryResponse);
+
+    ResultActions resultActions = mockMvc
+        .perform(post(BASE_URL)
+            .content(jsonRequest)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON));
+
+    resultActions
+        .andExpect(status().isCreated())
+        .andExpect(header().exists("Location"))
+        .andExpect(jsonPath("$.id").value(categoryResponse.id()))
+        .andExpect(jsonPath("$.name").value(categoryResponse.name()));
+
+    verify(categoryService).insert(any(CategoryCreateRequest.class));
+  }
+
+  private String asJson(Object object) throws Exception {
+    return objectMapper.writeValueAsString(object);
   }
 
 }
