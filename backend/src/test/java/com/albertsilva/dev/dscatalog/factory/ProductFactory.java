@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 
+import com.albertsilva.dev.dscatalog.dto.product.request.ProductUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
 import com.albertsilva.dev.dscatalog.entities.Product;
@@ -27,6 +28,19 @@ public class ProductFactory {
   public static ProductDetailsResponse createProductDetailsResponse() {
     return new ProductDetailsResponse(1L, "Smart TV", "TV 50 polegadas", 2500.0,
         "https://img.com/tv.png", Instant.parse("2026-01-10T10:00:00Z"), List.of());
+  }
+
+  public static ProductUpdateRequest createProductUpdateRequest() {
+    return new ProductUpdateRequest("Updated Smart TV", "TV 50 polegadas atualizada", true, 2799.0,
+        "https://img.com/updated-tv.png",
+        Instant.parse("2026-01-10T10:00:00Z"),
+        List.of());
+  }
+
+  public static ProductResponse createUpdatedProductResponse() {
+    return new ProductResponse(1L, "Updated Smart TV", "TV 50 polegadas atualizada", 2799.0,
+        "https://img.com/updated-tv.png", Instant.parse("2026-01-10T10:00:00Z"),
+        List.of());
   }
 
 }

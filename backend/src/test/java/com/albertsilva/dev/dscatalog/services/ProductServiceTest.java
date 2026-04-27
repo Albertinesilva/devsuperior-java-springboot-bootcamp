@@ -122,7 +122,7 @@ public class ProductServiceTest {
     });
 
     // Assert (state)
-    Assertions.assertEquals("Integrity violation: cannot delete category with related entities",
+    Assertions.assertEquals("Integrity violation: cannot delete product with related entities",
         exception.getMessage());
 
     // Verify (behavior)
