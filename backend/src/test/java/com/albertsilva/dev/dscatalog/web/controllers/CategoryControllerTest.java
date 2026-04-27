@@ -34,6 +34,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.services.CategoryService;
+import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
 import com.albertsilva.dev.dscatalog.web.exceptions.advice.ControllerExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -68,11 +69,14 @@ public class CategoryControllerTest {
   @DisplayName("GET /categories should return paged categories")
   void findAllShouldReturnPage() throws Exception {
 
+    // Arrange
     when(categoryService.findAllPaged(any(Pageable.class))).thenReturn(page);
 
+    // Act
     ResultActions resultActions = mockMvc
         .perform(get(BASE_URL).accept(MediaType.APPLICATION_JSON));
 
+    // Assert
     resultActions
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
@@ -87,17 +91,35 @@ public class CategoryControllerTest {
   @DisplayName("GET /categories/{id} should return category when id exists")
   void findByIdShouldReturnCategoryWhenIdExists() throws Exception {
 
+    // Arrange
     when(categoryService.findById(EXISTING_ID)).thenReturn(categoryResponse);
 
+    // Act
     ResultActions resultActions = mockMvc
         .perform(get(BASE_URL + "/{id}", EXISTING_ID).accept(MediaType.APPLICATION_JSON));
 
+    // Assert
     resultActions
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(EXISTING_ID))
         .andExpect(jsonPath("$.name").value(categoryResponse.name()));
 
     verify(categoryService).findById(EXISTING_ID);
+  }
+
+  @Test
+  @DisplayName("GET /categories/{id} should return 404 when id does not exist")
+  void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+    // Arrange
+    when(categoryService.findById(NON_EXISTING_ID))
+        .thenThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID));
+
+    // Act and Assert
+    mockMvc
+        .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID)).andExpect(status().isNotFound());
+
+    verify(categoryService).findById(NON_EXISTING_ID);
   }
 
 }
