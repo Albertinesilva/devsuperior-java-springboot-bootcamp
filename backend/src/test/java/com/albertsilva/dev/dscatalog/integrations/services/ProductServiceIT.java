@@ -41,26 +41,6 @@ public class ProductServiceIT {
   private ProductRepository repository;
 
   @Test
-  @DisplayName("delete should remove product when id exists")
-  void deleteShouldRemoveProductWhenIdExists() {
-
-    // Act
-    service.delete(EXISTING_ID);
-
-    // Assert (state)
-    Assertions.assertEquals(COUNT_TOTAL_PRODUCTS - 1, repository.count());
-    assertFalse(repository.existsById(EXISTING_ID));
-  }
-
-  @Test
-  @DisplayName("delete should throw ResourceNotFoundException when id does not exist")
-  void deleteShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
-
-    // Act + Assert
-    assertThrows(ResourceNotFoundException.class, () -> service.delete(NON_EXISTING_ID));
-  }
-
-  @Test
   @DisplayName("findAllPaged should return paged products when page 0 size 10")
   void findAllPagedShouldReturnPagedProductsWhenPage0Size10() {
 
@@ -175,6 +155,26 @@ public class ProductServiceIT {
 
     // Act + Assert
     assertThrows(ResourceNotFoundException.class, () -> service.update(NON_EXISTING_ID, request));
+  }
+
+  @Test
+  @DisplayName("delete should remove product when id exists")
+  void deleteShouldRemoveProductWhenIdExists() {
+
+    // Act
+    service.delete(EXISTING_ID);
+
+    // Assert (state)
+    Assertions.assertEquals(COUNT_TOTAL_PRODUCTS - 1, repository.count());
+    assertFalse(repository.existsById(EXISTING_ID));
+  }
+
+  @Test
+  @DisplayName("delete should throw ResourceNotFoundException when id does not exist")
+  void deleteShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+    // Act + Assert
+    assertThrows(ResourceNotFoundException.class, () -> service.delete(NON_EXISTING_ID));
   }
 
 }
