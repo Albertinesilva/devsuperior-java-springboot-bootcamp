@@ -18,8 +18,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import com.albertsilva.dev.dscatalog.dto.product.request.ProductCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.product.request.ProductUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.product.response.ProductResponse;
+import com.albertsilva.dev.dscatalog.factory.ProductFactory;
 import com.albertsilva.dev.dscatalog.repositories.ProductRepository;
 import com.albertsilva.dev.dscatalog.services.ProductService;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
@@ -129,6 +132,49 @@ public class ProductServiceIT {
 
     // Act + Assert
     assertThrows(ResourceNotFoundException.class, () -> service.findById(NON_EXISTING_ID));
+  }
+
+  @Test
+  @DisplayName("insert should persist product when valid data")
+  void insertShouldPersistProductWhenValidData() {
+
+    // Arrange
+    ProductCreateRequest request = ProductFactory.createProductCreateRequest();
+
+    // Act
+    ProductResponse result = service.insert(request);
+
+    // Assert
+    assertNotNull(result);
+    assertNotNull(result.id());
+    assertEquals(COUNT_TOTAL_PRODUCTS + 1, repository.count());
+  }
+
+  @Test
+  @DisplayName("update should update product when id exists")
+  void updateShouldUpdateProductWhenIdExists() {
+
+    // Arrange
+    ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
+
+    // Act
+    ProductResponse result = service.update(EXISTING_ID, request);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(EXISTING_ID, result.id());
+    assertEquals(request.name(), result.name());
+  }
+
+  @Test
+  @DisplayName("update should throw ResourceNotFoundException when id does not exist")
+  void updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+    // Arrange
+    ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
+
+    // Act + Assert
+    assertThrows(ResourceNotFoundException.class, () -> service.update(NON_EXISTING_ID, request));
   }
 
 }
