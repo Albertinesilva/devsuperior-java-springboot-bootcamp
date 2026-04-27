@@ -22,20 +22,30 @@ import jakarta.persistence.EntityNotFoundException;
  * {@link Category}.
  *
  * <p>
- * Esta classe atua como camada intermediária entre o Controller e o Repository,
- * aplicando regras de negócio, controle transacional e tratamento de exceções.
+ * Gerencia categorias, centralizando regras de negócio,
+ * validações, persistência e tratamento transacional.
  * </p>
  *
  * <p>
  * <b>Responsabilidades:</b>
  * </p>
  * <ul>
- * <li>Buscar categorias (simples e paginadas)</li>
- * <li>Criar novas categorias</li>
- * <li>Atualizar categorias existentes</li>
- * <li>Remover categorias</li>
- * <li>Buscar por nome (filtro)</li>
+ * <li>Operações de CRUD de categorias</li>
+ * <li>Paginação e filtros de busca</li>
+ * <li>Conversão entre entidades e DTOs</li>
+ * <li>Tratamento de exceções de negócio</li>
+ * <li>Garantia de integridade e consistência dos dados</li>
  * </ul>
+ *
+ * @implNote
+ *           Atua como camada de serviço (Service Layer), intermediando
+ *           Controller, Repository e Mapper dentro da arquitetura Spring Boot.
+ *
+ * @apiNote
+ *          Esta implementação exemplifica conceitos fundamentais de aplicações
+ *          corporativas,
+ *          como Service Layer, arquitetura em camadas, DTO Pattern,
+ *          persistência com JPA, paginação e regras de negócio centralizadas.
  */
 @Service
 public class CategoryService {
@@ -45,6 +55,12 @@ public class CategoryService {
   private final CategoryRepository categoryRepository;
   private final CategoryMapper categoryMapper;
 
+  /**
+   * Constrói o serviço de categorias com suas dependências principais.
+   *
+   * @param categoryRepository repositório de categorias
+   * @param categoryMapper     responsável pela conversão entre DTOs e entidades
+   */
   public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
     this.categoryRepository = categoryRepository;
     this.categoryMapper = categoryMapper;
@@ -54,12 +70,20 @@ public class CategoryService {
    * Retorna uma lista paginada de categorias.
    *
    * <p>
-   * Utiliza o recurso de paginação do Spring Data para evitar
-   * carregamento excessivo de dados na memória.
+   * Permite consultar categorias de forma escalável,
+   * evitando carregamento excessivo de registros.
    * </p>
    *
-   * @param pageable informações de paginação (página, tamanho, ordenação)
-   * @return página contendo {@link CategoryResponse}
+   * @param pageable informações de paginação
+   * @return página de {@link CategoryResponse}
+   *
+   * @implNote
+   *           Utiliza paginação nativa do Spring Data JPA,
+   *           reduzindo consumo de memória e melhorando performance.
+   *
+   * @apiNote
+   *          Esta implementação reforça conceitos importantes como:
+   *          paginação, escalabilidade e otimização de consultas.
    */
   @Transactional(readOnly = true)
   public Page<CategoryResponse> findAllPaged(Pageable pageable) {
@@ -69,16 +93,24 @@ public class CategoryService {
   }
 
   /**
-   * Busca uma categoria pelo seu ID.
+   * Busca uma categoria pelo seu identificador.
    *
    * <p>
-   * Caso a categoria não exista, uma exceção
-   * {@link ResourceNotFoundException} será lançada.
+   * Retorna os dados completos da categoria,
+   * garantindo validação segura da existência do registro.
    * </p>
    *
    * @param id identificador da categoria
    * @return dados da categoria
-   * @throws ResourceNotFoundException caso o ID não exista
+   * @throws ResourceNotFoundException caso a categoria não exista
+   *
+   * @implNote
+   *           Utiliza {@code findById(id)}, realizando consulta imediata no
+   *           banco.
+   *
+   * @apiNote
+   *          Esta implementação reforça conceitos importantes como:
+   *          Optional, tratamento de exceções e busca segura de entidades.
    */
   @Transactional(readOnly = true)
   public CategoryResponse findById(Long id) {
@@ -98,11 +130,20 @@ public class CategoryService {
    * Insere uma nova categoria no sistema.
    *
    * <p>
-   * O DTO de entrada é convertido para entidade e persistido no banco.
+   * Converte o DTO de entrada em entidade
+   * e persiste os dados no banco.
    * </p>
    *
-   * @param categoryCreateRequest dados da categoria a ser criada
-   * @return categoria criada em formato de resposta
+   * @param categoryCreateRequest dados para criação da categoria
+   * @return categoria criada
+   *
+   * @implNote
+   *           Utiliza conversão DTO → Entity,
+   *           garantindo separação entre camada de apresentação e persistência.
+   *
+   * @apiNote
+   *          Esta implementação reforça conceitos importantes como:
+   *          DTO Pattern, persistência e criação de entidades em APIs RESTful.
    */
   @Transactional
   public CategoryResponse insert(CategoryCreateRequest categoryCreateRequest) {
@@ -116,21 +157,30 @@ public class CategoryService {
   }
 
   /**
-   * Atualiza os dados de uma categoria existente.
+   * Atualiza parcialmente uma categoria existente.
    *
    * <p>
-   * A atualização é parcial: apenas campos não nulos são modificados.
-   * </p>
-   *
-   * <p>
-   * Utiliza {@code getReferenceById} para obter uma referência da entidade,
-   * evitando uma consulta completa ao banco inicialmente.
+   * Permite modificar apenas campos informados,
+   * preservando dados não enviados.
    * </p>
    *
    * @param id                    identificador da categoria
-   * @param categoryUpdateRequest dados para atualização
+   * @param categoryUpdateRequest dados para atualização parcial
    * @return categoria atualizada
    * @throws ResourceNotFoundException caso a categoria não exista
+   *
+   * @implNote
+   *           Utiliza {@code getReferenceById(id)} para obter uma referência lazy
+   *           (proxy) da entidade, evitando consulta imediata ao banco.
+   *
+   *           <p>
+   *           O proxy será inicializado somente quando atributos forem acessados.
+   *           </p>
+   *
+   * @apiNote
+   *          Esta implementação reforça conceitos importantes como:
+   *          JPA Proxy, Lazy Loading, atualização parcial e Contexto de
+   *          Persistência.
    */
   @Transactional
   public CategoryResponse update(Long id, CategoryUpdateRequest categoryUpdateRequest) {
@@ -151,56 +201,57 @@ public class CategoryService {
   }
 
   /**
-   * Remove uma categoria do sistema.
+   * Remove uma categoria existente do sistema.
    *
    * <p>
-   * Antes de deletar, a existência da categoria é validada através de uma busca
-   * no banco de dados. Caso não exista, uma exceção é lançada.
+   * Valida previamente a existência da entidade
+   * antes da exclusão.
    * </p>
    *
    * <p>
    * Possíveis cenários de erro:
    * </p>
    * <ul>
-   * <li>Categoria não encontrada → {@link ResourceNotFoundException}</li>
-   * <li>Violação de integridade → tratada globalmente no {@code ControllerAdvice}
-   * (ex: {@code DataIntegrityViolationException})</li>
-   * </ul>
-   *
-   * <p>
-   * <b>Decisões de implementação:</b>
-   * </p>
-   * <ul>
-   * <li>
-   * Não foi utilizado {@code existsById(id)} para evitar uma consulta adicional
-   * ao banco,
-   * já que {@code findById(id)} já cumpre esse papel de forma mais eficiente.
-   * </li>
-   * <li>
-   * Não foi utilizado {@code @Transactional(propagation = Propagation.SUPPORTS)},
-   * pois operações de escrita (DELETE) devem ocorrer dentro de uma transação
-   * ativa
-   * para garantir consistência e integridade dos dados.
-   * </li>
-   * <li>
-   * Não foi utilizado {@code categoryRepository.flush()}, pois a sincronização
-   * com o banco
-   * deve ocorrer naturalmente no commit da transação. Forçar o flush pode
-   * impactar
-   * negativamente a performance e não é uma prática comum em cenários padrão.
-   * </li>
-   * <li>
-   * Não há {@code try/catch} para {@code DataIntegrityViolationException} no
-   * método,
-   * pois essa exceção pode ocorrer no momento do commit da transação. O
-   * tratamento é
-   * centralizado no {@code @RestControllerAdvice}, garantindo maior
-   * confiabilidade
-   * e padronização das respostas da API.
-   * </li>
+   * <li>Categoria não encontrada →
+   * {@link ResourceNotFoundException}</li>
+   * <li>Violação de integridade referencial →
+   * tratada globalmente via {@code @RestControllerAdvice}</li>
    * </ul>
    *
    * @param id identificador da categoria
+   * @throws ResourceNotFoundException caso a categoria não exista
+   *
+   * @implNote
+   *           Utiliza {@code findById(id)} para validar existência
+   *           e carregar a entidade em uma única consulta,
+   *           evitando redundância de operações como {@code existsById(id)}.
+   *
+   *           <p>
+   *           Não utiliza {@code flush()} manual,
+   *           permitindo sincronização natural com o banco
+   *           durante o commit da transação.
+   *           </p>
+   *
+   *           <p>
+   *           Não utiliza {@code Propagation.SUPPORTS},
+   *           pois operações de escrita devem ocorrer
+   *           dentro de transação ativa para garantir
+   *           consistência e integridade dos dados.
+   *           </p>
+   *
+   *           <p>
+   *           O tratamento de exceções como
+   *           {@code DataIntegrityViolationException}
+   *           permanece centralizado globalmente,
+   *           garantindo padronização e confiabilidade
+   *           nas respostas da API.
+   *           </p>
+   *
+   * @apiNote
+   *          Esta implementação reforça conceitos importantes como:
+   *          exclusão segura, integridade de dados,
+   *          controle transacional, otimização de consultas
+   *          e tratamento centralizado de exceções.
    */
   @Transactional
   public void delete(Long id) {
@@ -217,15 +268,30 @@ public class CategoryService {
   }
 
   /**
-   * Realiza busca de categorias pelo nome (case insensitive).
+   * Realiza busca paginada de categorias por nome.
    *
    * <p>
-   * Permite busca parcial utilizando "contains".
+   * Permite busca parcial e case insensitive,
+   * utilizando correspondência por conteúdo textual.
    * </p>
    *
    * @param name     termo de busca
-   * @param pageable paginação
+   * @param pageable informações de paginação
    * @return página de categorias encontradas
+   *
+   * @implNote
+   *           Utiliza consulta derivada do Spring Data JPA:
+   *           {@code findByNameContainingIgnoreCase}.
+   *
+   *           <p>
+   *           Essa abordagem reduz necessidade
+   *           de implementação manual de queries.
+   *           </p>
+   *
+   * @apiNote
+   *          Esta implementação reforça conceitos importantes como:
+   *          consultas derivadas, filtros dinâmicos,
+   *          paginação e busca textual eficiente.
    */
   @Transactional(readOnly = true)
   public Page<CategoryResponse> searchByName(String name, Pageable pageable) {
