@@ -1,12 +1,90 @@
 package com.albertsilva.dev.dscatalog.integrations.services;
 
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.COUNT_TOTAL_CATEGORIES;
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.EXISTING_ID;
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_EXISTING_ID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
+import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
+import com.albertsilva.dev.dscatalog.services.CategoryService;
 
 @SpringBootTest
 @Transactional
 @DisplayName("CategoryService Integration Tests")
 public class CategoryServiceIT {
   
+  @Autowired
+  private CategoryService service;
+
+  @Autowired
+  private CategoryRepository repository;
+
+  @Test
+  @DisplayName("findAllPaged should return paged categories when page 0 size 10")
+  void findAllPagedShouldReturnPagedCategoriesWhenPage0Size10() {
+
+    // Arrange
+    PageRequest pageRequest = PageRequest.of(0, 10);
+
+    // Act
+    Page<CategoryResponse> result = service.findAllPaged(pageRequest);
+
+    // Assert
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+    assertEquals(0, result.getNumber());
+    assertEquals(10, result.getSize());
+    assertEquals(COUNT_TOTAL_CATEGORIES, result.getTotalElements());
+  }
+
+  @Test
+  @DisplayName("findAllPaged should return empty page when page does not exist")
+  void findAllPagedShouldReturnEmptyPageWhenPageDoesNotExist() {
+
+    // Arrange
+    PageRequest pageRequest = PageRequest.of(50, 10);
+
+    // Act
+    Page<CategoryResponse> result = service.findAllPaged(pageRequest);
+
+    // Assert
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    assertEquals(50, result.getNumber());
+    assertEquals(10, result.getSize());
+    assertEquals(COUNT_TOTAL_CATEGORIES, result.getTotalElements());
+  }
+
+  @Test
+  @DisplayName("findAllPaged should return ordered page when sorting by name")
+  void findAllPagedShouldReturnOrderedPageWhenSortingByName() {
+
+    // Arrange
+    PageRequest pageRequest = PageRequest.of(0, 10, Sort.by("name"));
+
+    // Act
+    Page<CategoryResponse> result = service.findAllPaged(pageRequest);
+
+    // Assert
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+
+    // Ajuste conforme massa de dados real
+    assertTrue(result.getContent().get(0).name().compareTo(result.getContent().get(1).name()) <= 0);
+  }
+
 }
