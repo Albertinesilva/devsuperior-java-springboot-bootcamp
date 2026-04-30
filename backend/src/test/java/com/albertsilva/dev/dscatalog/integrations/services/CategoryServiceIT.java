@@ -19,7 +19,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
+import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
 import com.albertsilva.dev.dscatalog.services.CategoryService;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
@@ -107,6 +109,22 @@ public class CategoryServiceIT {
 
     // Act + Assert
     assertThrows(ResourceNotFoundException.class, () -> service.findById(NON_EXISTING_ID));
+  }
+
+  @Test
+  @DisplayName("insert should persist category when valid data")
+  void insertShouldPersistCategoryWhenValidData() {
+
+    // Arrange
+    CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
+
+    // Act
+    CategoryResponse result = service.insert(request);
+
+    // Assert
+    assertNotNull(result);
+    assertNotNull(result.id());
+    assertEquals(COUNT_TOTAL_CATEGORIES + 1, repository.count());
   }
 
 }
