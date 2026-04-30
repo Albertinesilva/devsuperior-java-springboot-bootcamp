@@ -1,19 +1,25 @@
 package com.albertsilva.dev.dscatalog.integrations.services;
 
 import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.COUNT_TOTAL_CATEGORIES;
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.DEPENDENT_ID;
 import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.EXISTING_ID;
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_DEPENDENT_ID;
 import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_EXISTING_ID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -54,11 +60,12 @@ public class CategoryServiceIT {
     assertEquals(0, result.getNumber());
     assertEquals(10, result.getSize());
     assertEquals(COUNT_TOTAL_CATEGORIES, result.getTotalElements());
+    assertTrue(result.getContent().size() <= 10);
   }
 
   @Test
-  @DisplayName("findAllPaged should return empty page when page does not exist")
-  void findAllPagedShouldReturnEmptyPageWhenPageDoesNotExist() {
+  @DisplayName("findAllPaged should return empty page when requested page does not exist")
+  void findAllPagedShouldReturnEmptyPageWhenRequestedPageDoesNotExist() {
 
     // Arrange
     PageRequest pageRequest = PageRequest.of(50, 10);
@@ -75,8 +82,8 @@ public class CategoryServiceIT {
   }
 
   @Test
-  @DisplayName("findAllPaged should return ordered page when sorting by name")
-  void findAllPagedShouldReturnOrderedPageWhenSortingByName() {
+  @DisplayName("findAllPaged should return ordered categories when sorting by name")
+  void findAllPagedShouldReturnOrderedCategoriesWhenSortingByName() {
 
     // Arrange
     PageRequest pageRequest = PageRequest.of(0, 10, Sort.by("name"));
@@ -88,8 +95,12 @@ public class CategoryServiceIT {
     assertNotNull(result);
     assertFalse(result.isEmpty());
 
-    // Ajuste conforme massa de dados real
-    assertTrue(result.getContent().get(0).name().compareTo(result.getContent().get(1).name()) <= 0);
+    List<String> names = result.getContent().stream().map(CategoryResponse::name).toList();
+
+    List<String> sorted = new ArrayList<>(names);
+    Collections.sort(sorted);
+
+    assertEquals(sorted, names);
   }
 
   @Test
@@ -102,6 +113,7 @@ public class CategoryServiceIT {
     // Assert
     assertNotNull(result);
     assertEquals(EXISTING_ID, result.id());
+    assertNotNull(result.name());
   }
 
   @Test
@@ -110,6 +122,44 @@ public class CategoryServiceIT {
 
     // Act + Assert
     assertThrows(ResourceNotFoundException.class, () -> service.findById(NON_EXISTING_ID));
+  }
+
+  @Test
+  @DisplayName("searchByName should return categories when name exists")
+  void searchByNameShouldReturnCategoriesWhenNameExists() {
+
+    // Arrange
+    String name = "Books";
+    PageRequest pageRequest = PageRequest.of(0, 10);
+
+    // Act
+    Page<CategoryResponse> result = service.searchByName(name, pageRequest);
+
+    // Assert
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+    assertTrue(result.getTotalElements() > 0);
+
+    assertTrue(result
+        .getContent()
+        .stream()
+        .allMatch(category -> category.name().toLowerCase().contains(name.toLowerCase())));
+  }
+
+  @Test
+  @DisplayName("searchByName should return empty page when name does not exist")
+  void searchByNameShouldReturnEmptyPageWhenNameDoesNotExist() {
+
+    // Arrange
+    String name = "NonExistingCategory";
+    PageRequest pageRequest = PageRequest.of(0, 10);
+
+    // Act
+    Page<CategoryResponse> result = service.searchByName(name, pageRequest);
+
+    // Assert
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
   }
 
   @Test
@@ -125,7 +175,9 @@ public class CategoryServiceIT {
     // Assert
     assertNotNull(result);
     assertNotNull(result.id());
+    assertNotNull(result.name());
     assertEquals(COUNT_TOTAL_CATEGORIES + 1, repository.count());
+    assertTrue(repository.existsById(result.id()));
   }
 
   @Test
@@ -142,6 +194,9 @@ public class CategoryServiceIT {
     assertNotNull(result);
     assertEquals(EXISTING_ID, result.id());
     assertEquals(request.name(), result.name());
+
+    CategoryResponse updatedCategory = service.findById(EXISTING_ID);
+    assertEquals(request.name(), updatedCategory.name());
   }
 
   @Test
@@ -155,4 +210,37 @@ public class CategoryServiceIT {
     assertThrows(ResourceNotFoundException.class, () -> service.update(NON_EXISTING_ID, request));
   }
 
+  @Test
+  @DisplayName("delete should remove category when id exists and category has no dependencies")
+  void deleteShouldRemoveCategoryWhenIdExistsAndCategoryHasNoDependencies() {
+
+    // Act
+    service.delete(NON_DEPENDENT_ID);
+
+    // Assert
+    assertEquals(COUNT_TOTAL_CATEGORIES - 1, repository.count());
+    assertFalse(repository.existsById(NON_DEPENDENT_ID));
+  }
+
+  @Test
+  @DisplayName("delete should throw ResourceNotFoundException when id does not exist")
+  void deleteShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+    // Act + Assert
+    assertThrows(ResourceNotFoundException.class, () -> service.delete(NON_EXISTING_ID));
+  }
+
+  @Test
+  @DisplayName("delete should throw DataIntegrityViolationException when category has associated products")
+  void deleteShouldThrowDataIntegrityViolationExceptionWhenCategoryHasAssociatedProducts() {
+
+    // Arrange
+    assertTrue(repository.existsById(DEPENDENT_ID));
+
+    // Act + Assert
+    assertThrows(DataIntegrityViolationException.class, () -> {
+      service.delete(DEPENDENT_ID);
+      repository.flush();
+    });
+  }
 }
