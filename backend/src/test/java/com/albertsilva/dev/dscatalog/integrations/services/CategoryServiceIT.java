@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryUpdateRequest;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
@@ -125,6 +126,33 @@ public class CategoryServiceIT {
     assertNotNull(result);
     assertNotNull(result.id());
     assertEquals(COUNT_TOTAL_CATEGORIES + 1, repository.count());
+  }
+
+  @Test
+  @DisplayName("update should update category when id exists")
+  void updateShouldUpdateCategoryWhenIdExists() {
+
+    // Arrange
+    CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
+
+    // Act
+    CategoryResponse result = service.update(EXISTING_ID, request);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(EXISTING_ID, result.id());
+    assertEquals(request.name(), result.name());
+  }
+
+  @Test
+  @DisplayName("update should throw ResourceNotFoundException when id does not exist")
+  void updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+    // Arrange
+    CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
+
+    // Act + Assert
+    assertThrows(ResourceNotFoundException.class, () -> service.update(NON_EXISTING_ID, request));
   }
 
 }
