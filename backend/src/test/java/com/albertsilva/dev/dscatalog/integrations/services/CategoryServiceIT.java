@@ -7,6 +7,7 @@ import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_EXISTING
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
@@ -21,12 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
 import com.albertsilva.dev.dscatalog.services.CategoryService;
+import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
 
 @SpringBootTest
 @Transactional
 @DisplayName("CategoryService Integration Tests")
 public class CategoryServiceIT {
-  
+
   @Autowired
   private CategoryService service;
 
@@ -85,6 +87,26 @@ public class CategoryServiceIT {
 
     // Ajuste conforme massa de dados real
     assertTrue(result.getContent().get(0).name().compareTo(result.getContent().get(1).name()) <= 0);
+  }
+
+  @Test
+  @DisplayName("findById should return category when id exists")
+  void findByIdShouldReturnCategoryWhenIdExists() {
+
+    // Act
+    CategoryResponse result = service.findById(EXISTING_ID);
+
+    // Assert
+    assertNotNull(result);
+    assertEquals(EXISTING_ID, result.id());
+  }
+
+  @Test
+  @DisplayName("findById should throw ResourceNotFoundException when id does not exist")
+  void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+    // Act + Assert
+    assertThrows(ResourceNotFoundException.class, () -> service.findById(NON_EXISTING_ID));
   }
 
 }
