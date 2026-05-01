@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AutoConfigureMockMvc
 @Transactional
 @DisplayName("ProductController Integration Tests")
-public class ProductControllerIT {
+class ProductControllerIT {
 
   private static final String BASE_URL = "/api/v1/products";
 
@@ -56,197 +57,215 @@ public class ProductControllerIT {
     totalProductsCount = productRepository.count();
   }
 
-  @Test
-  @DisplayName("GET /products should return sorted paged products when sort by name")
-  public void findAllShouldReturnSortedPagedWhenSortByNameProducts() throws Exception {
+  @Nested
+  @DisplayName("READ Operations")
+  class ReadOperations {
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "?page=0&size=12&sort=name,asc").accept(MediaType.APPLICATION_JSON));
+    @Test
+    @DisplayName("GET /products should return sorted paged products when sort by name")
+    void findAllShouldReturnSortedPagedWhenSortByNameProducts() throws Exception {
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.totalElements").value(totalProductsCount))
-        .andExpect(jsonPath("$.content[0].name").value("Macbook Pro"))
-        .andExpect(jsonPath("$.content[1].name").value("PC Gamer"))
-        .andExpect(jsonPath("$.content[2].name").value("PC Gamer Alfa"))
-        .andExpect(jsonPath("$.number").isNumber())
-        .andExpect(jsonPath("$.size").isNumber());
+      // Act
+      ResultActions resultActions = mockMvc
+          .perform(get(BASE_URL + "?page=0&size=12&sort=name,asc").accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content").isArray())
+          .andExpect(jsonPath("$.totalElements").value(totalProductsCount))
+          .andExpect(jsonPath("$.content[0].name").value("Macbook Pro"))
+          .andExpect(jsonPath("$.content[1].name").value("PC Gamer"))
+          .andExpect(jsonPath("$.content[2].name").value("PC Gamer Alfa"))
+          .andExpect(jsonPath("$.number").isNumber())
+          .andExpect(jsonPath("$.size").isNumber());
+    }
+
+    @Test
+    @DisplayName("GET /products with pagination parameters should return paged products")
+    void findAllWithPaginationShouldReturnPagedProducts() throws Exception {
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(get(BASE_URL)
+          .param("page", "0")
+          .param("linesPerPage", "20")
+          .param("direction", "ASC")
+          .param("orderBy", "name")
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content").isArray())
+          .andExpect(jsonPath("$.number").value(0))
+          .andExpect(jsonPath("$.size").value(20));
+    }
+
+    @Test
+    @DisplayName("GET /products/{id} should return product details when id exists")
+    void findByIdShouldReturnProductDetailsWhenIdExists() throws Exception {
+
+      // Act
+      ResultActions resultActions = mockMvc
+          .perform(get(BASE_URL + "/{id}", EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(EXISTING_ID))
+          .andExpect(jsonPath("$.name").isNotEmpty())
+          .andExpect(jsonPath("$.description").isNotEmpty())
+          .andExpect(jsonPath("$.price").isNumber());
+    }
+
+    @Test
+    @DisplayName("GET /products/{id} should return 404 when id does not exist")
+    void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+      // Act
+      ResultActions resultActions = mockMvc
+          .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions.andExpect(status().isNotFound());
+    }
   }
 
-  @Test
-  @DisplayName("GET /products with pagination parameters should return paged products")
-  public void findAllWithPaginationShouldReturnPagedProducts() throws Exception {
+  @Nested
+  @DisplayName("CREATE Operations")
+  class CreateOperations {
 
-    // Act
-    ResultActions resultActions = mockMvc.perform(get(BASE_URL)
-        .param("page", "0")
-        .param("linesPerPage", "20")
-        .param("direction", "ASC")
-        .param("orderBy", "name")
-        .accept(MediaType.APPLICATION_JSON));
+    @Test
+    @DisplayName("POST /products should insert product and return 201")
+    void insertShouldCreateProductAndReturnCreated() throws Exception {
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.number").value(0))
-        .andExpect(jsonPath("$.size").value(20));
+      // Arrange
+      ProductCreateRequest request = ProductFactory.createProductCreateRequest();
+      String jsonRequest = asJson(request);
+      long initialCount = productRepository.count();
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(post(BASE_URL)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isCreated())
+          .andExpect(header().exists("Location"))
+          .andExpect(jsonPath("$.id").isNotEmpty())
+          .andExpect(jsonPath("$.name").value(request.name()))
+          .andExpect(jsonPath("$.description").value(request.description()))
+          .andExpect(jsonPath("$.price").value(request.price()));
+
+      assert productRepository.count() == initialCount + 1;
+    }
+
+    @Test
+    @DisplayName("POST /products should create product with valid data")
+    void insertShouldCreateProductWithValidData() throws Exception {
+
+      // Arrange
+      ProductCreateRequest request = ProductFactory.createProductCreateRequest();
+      String jsonRequest = asJson(request);
+      long initialCount = productRepository.count();
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(post(BASE_URL)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isCreated())
+          .andExpect(header().exists("Location"))
+          .andExpect(jsonPath("$.name").value(request.name()));
+
+      assert productRepository.count() == initialCount + 1;
+    }
   }
 
-  @Test
-  @DisplayName("GET /products/{id} should return product details when id exists")
-  public void findByIdShouldReturnProductDetailsWhenIdExists() throws Exception {
+  @Nested
+  @DisplayName("UPDATE Operations")
+  class UpdateOperations {
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "/{id}", EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+    @Test
+    @DisplayName("PATCH /products/{id} should update product when id exists")
+    void updateShouldReturnProductResponseWhenIdExists() throws Exception {
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(EXISTING_ID))
-        .andExpect(jsonPath("$.name").isNotEmpty())
-        .andExpect(jsonPath("$.description").isNotEmpty())
-        .andExpect(jsonPath("$.price").isNumber());
+      // Arrange
+      ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
+      String jsonRequest = asJson(request);
+
+      String expectedName = request.name();
+      String expectedDescription = request.description();
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", EXISTING_ID)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(EXISTING_ID))
+          .andExpect(jsonPath("$.name").value(expectedName))
+          .andExpect(jsonPath("$.description").value(expectedDescription));
+    }
+
+    @Test
+    @DisplayName("PATCH /products/{id} should return 404 when id does not exist")
+    void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+      // Arrange
+      ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
+      String jsonRequest = asJson(request);
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions.andExpect(status().isNotFound());
+    }
   }
 
-  @Test
-  @DisplayName("GET /products/{id} should return 404 when id does not exist")
-  public void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+  @Nested
+  @DisplayName("DELETE Operations")
+  class DeleteOperations {
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+    @Test
+    @DisplayName("DELETE /products/{id} should delete product when id exists")
+    void deleteShouldRemoveProductWhenIdExists() throws Exception {
 
-    // Assert
-    resultActions.andExpect(status().isNotFound());
-  }
+      // Arrange
+      long initialCount = productRepository.count();
 
-  @Test
-  @DisplayName("POST /products should insert product and return 201")
-  public void insertShouldCreateProductAndReturnCreated() throws Exception {
+      // Act
+      ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", EXISTING_ID));
 
-    // Arrange
-    ProductCreateRequest request = ProductFactory.createProductCreateRequest();
-    String jsonRequest = asJson(request);
-    long initialCount = productRepository.count();
+      // Assert
+      resultActions.andExpect(status().isNoContent());
 
-    // Act
-    ResultActions resultActions = mockMvc.perform(post(BASE_URL)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON));
+      assert productRepository.count() == initialCount - 1;
+      assert !productRepository.existsById(EXISTING_ID);
+    }
 
-    // Assert
-    resultActions
-        .andExpect(status().isCreated())
-        .andExpect(header().exists("Location"))
-        .andExpect(jsonPath("$.id").isNotEmpty())
-        .andExpect(jsonPath("$.name").value(request.name()))
-        .andExpect(jsonPath("$.description").value(request.description()))
-        .andExpect(jsonPath("$.price").value(request.price()));
+    @Test
+    @DisplayName("DELETE /products/{id} should return 404 when id does not exist")
+    void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
 
-    // Verify that the product was actually persisted
-    assert productRepository.count() == initialCount + 1;
-  }
+      // Act
+      ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID));
 
-  @Test
-  @DisplayName("POST /products should create product with valid data")
-  public void insertShouldCreateProductWithValidData() throws Exception {
-
-    // Arrange
-    ProductCreateRequest request = ProductFactory.createProductCreateRequest();
-    String jsonRequest = asJson(request);
-    long initialCount = productRepository.count();
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(post(BASE_URL)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON));
-
-    // Assert
-    resultActions
-        .andExpect(status().isCreated())
-        .andExpect(header().exists("Location"))
-        .andExpect(jsonPath("$.name").value(request.name()));
-
-    assert productRepository.count() == initialCount + 1;
-  }
-
-  @Test
-  @DisplayName("PATCH /products/{id} should update product when id exists")
-  public void updateShouldReturnProductResponseWhenIdExists() throws Exception {
-
-    // Arrange
-    ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
-    String jsonRequest = asJson(request);
-
-    String expectedName = request.name();
-    String expectedDescription = request.description();
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", EXISTING_ID)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON));
-
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(EXISTING_ID))
-        .andExpect(jsonPath("$.name").value(expectedName))
-        .andExpect(jsonPath("$.description").value(expectedDescription));
-  }
-
-  @Test
-  @DisplayName("PATCH /products/{id} should return 404 when id does not exist")
-  public void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
-
-    // Arrange
-    ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
-    String jsonRequest = asJson(request);
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON));
-
-    // Assert
-    resultActions.andExpect(status().isNotFound());
-  }
-
-  @Test
-  @DisplayName("DELETE /products/{id} should delete product when id exists")
-  public void deleteShouldRemoveProductWhenIdExists() throws Exception {
-
-    // Arrange
-    long initialCount = productRepository.count();
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", EXISTING_ID));
-
-    // Assert
-    resultActions.andExpect(status().isNoContent());
-
-    // Verify that the product was actually removed
-    assert productRepository.count() == initialCount - 1;
-    assert !productRepository.existsById(EXISTING_ID);
-  }
-
-  @Test
-  @DisplayName("DELETE /products/{id} should return 404 when id does not exist")
-  public void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID));
-
-    // Assert
-    resultActions.andExpect(status().isNotFound());
+      // Assert
+      resultActions.andExpect(status().isNotFound());
+    }
   }
 
   private String asJson(Object object) throws Exception {
