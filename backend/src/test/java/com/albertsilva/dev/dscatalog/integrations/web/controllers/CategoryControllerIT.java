@@ -1,5 +1,8 @@
 package com.albertsilva.dev.dscatalog.integrations.web.controllers;
 
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.EXISTING_ID;
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_EXISTING_ID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -68,13 +71,12 @@ public class CategoryControllerIT {
   public void findAllWithPaginationShouldReturnPagedCategories() throws Exception {
 
     // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL)
-            .param("page", "0")
-            .param("linesPerPage", "10")
-            .param("direction", "ASC")
-            .param("orderBy", "name")
-            .accept(MediaType.APPLICATION_JSON));
+    ResultActions resultActions = mockMvc.perform(get(BASE_URL)
+        .param("page", "0")
+        .param("linesPerPage", "10")
+        .param("direction", "ASC")
+        .param("orderBy", "name")
+        .accept(MediaType.APPLICATION_JSON));
 
     // Assert
     resultActions
@@ -82,6 +84,64 @@ public class CategoryControllerIT {
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.number").value(0))
         .andExpect(jsonPath("$.size").value(10));
+  }
+
+  @Test
+  @DisplayName("GET /categories/{id} should return category when id exists")
+  public void findByIdShouldReturnCategoryWhenIdExists() throws Exception {
+
+    // Act
+    ResultActions resultActions = mockMvc
+        .perform(get(BASE_URL + "/{id}", EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(EXISTING_ID))
+        .andExpect(jsonPath("$.name").isNotEmpty());
+  }
+
+  @Test
+  @DisplayName("GET /categories/{id} should return 404 when id does not exist")
+  public void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+    // Act
+    ResultActions resultActions = mockMvc
+        .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions.andExpect(status().isNotFound());
+  }
+
+  @Test
+  @DisplayName("GET /categories/search?name=value should return filtered categories")
+  public void searchByNameShouldReturnFilteredCategories() throws Exception {
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(get(BASE_URL + "/search")
+        .param("name", "Eletrônicos")
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray());
+  }
+
+  @Test
+  @DisplayName("GET /categories/search?name=value should return empty page when name does not exist")
+  public void searchByNameShouldReturnEmptyPageWhenNameDoesNotExist() throws Exception {
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(get(BASE_URL + "/search")
+        .param("name", "NonExistingCategoryXYZ")
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.totalElements").value(0));
   }
 
 }
