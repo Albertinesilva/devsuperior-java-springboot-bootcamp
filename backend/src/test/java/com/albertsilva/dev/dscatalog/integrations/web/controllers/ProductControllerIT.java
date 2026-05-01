@@ -5,6 +5,7 @@ import static com.albertsilva.dev.dscatalog.factory.ProductFactory.NON_EXISTING_
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,6 +26,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.albertsilva.dev.dscatalog.dto.product.request.ProductCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.product.request.ProductUpdateRequest;
 import com.albertsilva.dev.dscatalog.factory.ProductFactory;
 import com.albertsilva.dev.dscatalog.repositories.ProductRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -148,6 +150,73 @@ public class ProductControllerIT {
 
     // Verify that the product was actually persisted
     assert productRepository.count() == initialCount + 1;
+  }
+
+  @Test
+  @DisplayName("POST /products should create product with valid data")
+  public void insertShouldCreateProductWithValidData() throws Exception {
+
+    // Arrange
+    ProductCreateRequest request = ProductFactory.createProductCreateRequest();
+    String jsonRequest = asJson(request);
+    long initialCount = productRepository.count();
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(post(BASE_URL)
+        .content(jsonRequest)
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isCreated())
+        .andExpect(header().exists("Location"))
+        .andExpect(jsonPath("$.name").value(request.name()));
+
+    assert productRepository.count() == initialCount + 1;
+  }
+
+  @Test
+  @DisplayName("PATCH /products/{id} should update product when id exists")
+  public void updateShouldReturnProductResponseWhenIdExists() throws Exception {
+
+    // Arrange
+    ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
+    String jsonRequest = asJson(request);
+
+    String expectedName = request.name();
+    String expectedDescription = request.description();
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", EXISTING_ID)
+        .content(jsonRequest)
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(EXISTING_ID))
+        .andExpect(jsonPath("$.name").value(expectedName))
+        .andExpect(jsonPath("$.description").value(expectedDescription));
+  }
+
+  @Test
+  @DisplayName("PATCH /products/{id} should return 404 when id does not exist")
+  public void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+    // Arrange
+    ProductUpdateRequest request = ProductFactory.createProductUpdateRequest();
+    String jsonRequest = asJson(request);
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
+        .content(jsonRequest)
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions.andExpect(status().isNotFound());
   }
 
   private String asJson(Object object) throws Exception {
