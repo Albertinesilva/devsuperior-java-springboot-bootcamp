@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AutoConfigureMockMvc
 @Transactional
 @DisplayName("CategoryController Integration Tests")
-public class CategoryControllerIT {
+class CategoryControllerIT {
 
   private static final String BASE_URL = "/api/v1/categories";
 
@@ -54,241 +55,273 @@ public class CategoryControllerIT {
     totalCategoriesCount = categoryRepository.count();
   }
 
-  @Test
-  @DisplayName("GET /categories should return sorted paged categories when sort by name")
-  public void findAllShouldReturnSortedPagedWhenSortByNameCategories() throws Exception {
+  @Nested
+  @DisplayName("Read Operations")
+  class ReadOperations {
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "?page=0&size=12&sort=name,asc").accept(MediaType.APPLICATION_JSON));
+    @Nested
+    @DisplayName("FindAll Operations")
+    class FindAllOperations {
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.totalElements").isNumber())
-        .andExpect(jsonPath("$.totalElements").value(totalCategoriesCount))
-        .andExpect(jsonPath("$.content[0].name").value("Automotive"))
-        .andExpect(jsonPath("$.content[1].name").value("Beauty"))
-        .andExpect(jsonPath("$.content[2].name").value("Books"))
-        .andExpect(jsonPath("$.number").isNumber())
-        .andExpect(jsonPath("$.size").isNumber());
+      @Test
+      @DisplayName("GET /categories should return sorted paged categories when sort by name")
+      void findAllShouldReturnSortedPagedWhenSortByNameCategories() throws Exception {
+
+        // Act
+        ResultActions resultActions = mockMvc
+            .perform(get(BASE_URL + "?page=0&size=12&sort=name,asc")
+                .accept(MediaType.APPLICATION_JSON));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").isArray())
+            .andExpect(jsonPath("$.totalElements").isNumber())
+            .andExpect(jsonPath("$.totalElements").value(totalCategoriesCount))
+            .andExpect(jsonPath("$.content[0].name").value("Automotive"))
+            .andExpect(jsonPath("$.content[1].name").value("Beauty"))
+            .andExpect(jsonPath("$.content[2].name").value("Books"))
+            .andExpect(jsonPath("$.number").isNumber())
+            .andExpect(jsonPath("$.size").isNumber());
+      }
+
+      @Test
+      @DisplayName("GET /categories with pagination parameters should return paged categories")
+      void findAllWithPaginationShouldReturnPagedCategories() throws Exception {
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(get(BASE_URL)
+            .param("page", "0")
+            .param("linesPerPage", "10")
+            .param("direction", "ASC")
+            .param("orderBy", "name")
+            .accept(MediaType.APPLICATION_JSON));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").isArray())
+            .andExpect(jsonPath("$.number").value(0))
+            .andExpect(jsonPath("$.size").value(10));
+      }
+    }
+
+    @Nested
+    @DisplayName("FindById Operations")
+    class FindByIdOperations {
+
+      @Test
+      @DisplayName("GET /categories/{id} should return category when id exists")
+      void findByIdShouldReturnCategoryWhenIdExists() throws Exception {
+
+        // Act
+        ResultActions resultActions = mockMvc
+            .perform(get(BASE_URL + "/{id}", EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(EXISTING_ID))
+            .andExpect(jsonPath("$.name").isNotEmpty());
+      }
+
+      @Test
+      @DisplayName("GET /categories/{id} should return 404 when id does not exist")
+      void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+        // Act
+        ResultActions resultActions = mockMvc
+            .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+
+        // Assert
+        resultActions.andExpect(status().isNotFound());
+      }
+    }
+
+    @Nested
+    @DisplayName("Search Operations")
+    class SearchOperations {
+
+      @Test
+      @DisplayName("GET /categories/search?name=value should return filtered categories")
+      void searchByNameShouldReturnFilteredCategories() throws Exception {
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(get(BASE_URL + "/search")
+            .param("name", "Eletrônicos")
+            .accept(MediaType.APPLICATION_JSON));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").isArray());
+      }
+
+      @Test
+      @DisplayName("GET /categories/search?name=value should return empty page when name does not exist")
+      void searchByNameShouldReturnEmptyPageWhenNameDoesNotExist() throws Exception {
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(get(BASE_URL + "/search")
+            .param("name", "NonExistingCategoryXYZ")
+            .accept(MediaType.APPLICATION_JSON));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").isArray())
+            .andExpect(jsonPath("$.totalElements").value(0));
+      }
+    }
   }
 
-  @Test
-  @DisplayName("GET /categories with pagination parameters should return paged categories")
-  public void findAllWithPaginationShouldReturnPagedCategories() throws Exception {
+  @Nested
+  @DisplayName("Create Operations")
+  class CreateOperations {
 
-    // Act
-    ResultActions resultActions = mockMvc.perform(get(BASE_URL)
-        .param("page", "0")
-        .param("linesPerPage", "10")
-        .param("direction", "ASC")
-        .param("orderBy", "name")
-        .accept(MediaType.APPLICATION_JSON));
+    @Test
+    @DisplayName("POST /categories should insert category and return 201")
+    void insertShouldCreateCategoryAndReturnCreated() throws Exception {
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.number").value(0))
-        .andExpect(jsonPath("$.size").value(10));
+      // Arrange
+      CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
+      String jsonRequest = asJson(request);
+      long initialCount = categoryRepository.count();
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(post(BASE_URL)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isCreated())
+          .andExpect(header().exists("Location"))
+          .andExpect(jsonPath("$.id").isNotEmpty())
+          .andExpect(jsonPath("$.name").value(request.name()))
+          .andExpect(jsonPath("$.description").value(request.description()))
+          .andExpect(jsonPath("$.active").value(request.active()));
+
+      assert categoryRepository.count() == initialCount + 1;
+    }
+
+    @Test
+    @DisplayName("POST /categories should create category with valid data")
+    void insertShouldCreateCategoryWithValidData() throws Exception {
+
+      // Arrange
+      CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
+      String jsonRequest = asJson(request);
+      long initialCount = categoryRepository.count();
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(post(BASE_URL)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isCreated())
+          .andExpect(header().exists("Location"))
+          .andExpect(jsonPath("$.name").value(request.name()));
+
+      assert categoryRepository.count() == initialCount + 1;
+    }
   }
 
-  @Test
-  @DisplayName("GET /categories/{id} should return category when id exists")
-  public void findByIdShouldReturnCategoryWhenIdExists() throws Exception {
+  @Nested
+  @DisplayName("Update Operations")
+  class UpdateOperations {
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "/{id}", EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+    @Test
+    @DisplayName("PATCH /categories/{id} should update category when id exists")
+    void updateShouldUpdateCategoryWhenIdExists() throws Exception {
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(EXISTING_ID))
-        .andExpect(jsonPath("$.name").isNotEmpty());
+      // Arrange
+      CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
+      String jsonRequest = asJson(request);
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", EXISTING_ID)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(EXISTING_ID))
+          .andExpect(jsonPath("$.name").value(request.name()))
+          .andExpect(jsonPath("$.description").value(request.description()));
+    }
+
+    @Test
+    @DisplayName("PATCH /categories/{id} should return 404 when id does not exist")
+    void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+      // Arrange
+      CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
+      String jsonRequest = asJson(request);
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions.andExpect(status().isNotFound());
+    }
   }
 
-  @Test
-  @DisplayName("GET /categories/{id} should return 404 when id does not exist")
-  public void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+  @Nested
+  @DisplayName("Delete Operations")
+  class DeleteOperations {
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID).accept(MediaType.APPLICATION_JSON));
+    @Test
+    @DisplayName("DELETE /categories/{id} should delete category when id exists and has no dependencies")
+    void deleteShouldRemoveCategoryWhenIdExistsAndHasNoDependencies() throws Exception {
 
-    // Assert
-    resultActions.andExpect(status().isNotFound());
-  }
+      // Arrange
+      long initialCount = categoryRepository.count();
+      assert categoryRepository.existsById(NON_DEPENDENT_ID);
 
-  @Test
-  @DisplayName("GET /categories/search?name=value should return filtered categories")
-  public void searchByNameShouldReturnFilteredCategories() throws Exception {
+      // Act
+      ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_DEPENDENT_ID));
 
-    // Act
-    ResultActions resultActions = mockMvc.perform(get(BASE_URL + "/search")
-        .param("name", "Eletrônicos")
-        .accept(MediaType.APPLICATION_JSON));
+      // Assert
+      resultActions.andExpect(status().isNoContent());
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray());
-  }
+      assert categoryRepository.count() == initialCount - 1;
+      assert !categoryRepository.existsById(NON_DEPENDENT_ID);
+    }
 
-  @Test
-  @DisplayName("GET /categories/search?name=value should return empty page when name does not exist")
-  public void searchByNameShouldReturnEmptyPageWhenNameDoesNotExist() throws Exception {
+    @Test
+    @DisplayName("DELETE /categories/{id} should return 404 when id does not exist")
+    void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
 
-    // Act
-    ResultActions resultActions = mockMvc.perform(get(BASE_URL + "/search")
-        .param("name", "NonExistingCategoryXYZ")
-        .accept(MediaType.APPLICATION_JSON));
+      // Act
+      ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID));
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.totalElements").value(0));
-  }
+      // Assert
+      resultActions.andExpect(status().isNotFound());
+    }
 
-  @Test
-  @DisplayName("POST /categories should insert category and return 201")
-  public void insertShouldCreateCategoryAndReturnCreated() throws Exception {
+    @Test
+    @DisplayName("DELETE /categories/{id} should return 409 when category has associated products")
+    void deleteShouldReturnBadRequestWhenCategoryHasAssociatedProducts() throws Exception {
 
-    // Arrange
-    CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
-    String jsonRequest = asJson(request);
-    long initialCount = categoryRepository.count();
+      // Act
+      ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", DEPENDENT_ID));
 
-    // Act
-    ResultActions resultActions = mockMvc.perform(post(BASE_URL)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON));
-
-    // Assert
-    resultActions
-        .andExpect(status().isCreated())
-        .andExpect(header().exists("Location"))
-        .andExpect(jsonPath("$.id").isNotEmpty())
-        .andExpect(jsonPath("$.name").value(request.name()))
-        .andExpect(jsonPath("$.description").value(request.description()))
-        .andExpect(jsonPath("$.active").value(request.active()));
-
-    // Verify that the category was actually persisted
-    assert categoryRepository.count() == initialCount + 1;
-  }
-
-  @Test
-  @DisplayName("POST /categories should create category with valid data")
-  public void insertShouldCreateCategoryWithValidData() throws Exception {
-
-    // Arrange
-    CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
-    String jsonRequest = asJson(request);
-    long initialCount = categoryRepository.count();
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(post(BASE_URL)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON));
-
-    // Assert
-    resultActions
-        .andExpect(status().isCreated())
-        .andExpect(header().exists("Location"))
-        .andExpect(jsonPath("$.name").value(request.name()));
-
-    assert categoryRepository.count() == initialCount + 1;
-  }
-
-  @Test
-  @DisplayName("PATCH /categories/{id} should update category when id exists")
-  public void updateShouldUpdateCategoryWhenIdExists() throws Exception {
-
-    // Arrange
-    CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
-    String jsonRequest = asJson(request);
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", EXISTING_ID)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON));
-
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(EXISTING_ID))
-        .andExpect(jsonPath("$.name").value(request.name()))
-        .andExpect(jsonPath("$.description").value(request.description()));
-  }
-
-  @Test
-  @DisplayName("PATCH /categories/{id} should return 404 when id does not exist")
-  public void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
-
-    // Arrange
-    CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
-    String jsonRequest = asJson(request);
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
-        .content(jsonRequest)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON));
-
-    // Assert
-    resultActions.andExpect(status().isNotFound());
-  }
-
-  @Test
-  @DisplayName("DELETE /categories/{id} should delete category when id exists and has no dependencies")
-  public void deleteShouldRemoveCategoryWhenIdExistsAndHasNoDependencies() throws Exception {
-
-    // Arrange
-    long initialCount = categoryRepository.count();
-    assert categoryRepository.existsById(NON_DEPENDENT_ID);
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_DEPENDENT_ID));
-
-    // Assert
-    resultActions.andExpect(status().isNoContent());
-
-    // Verify that the category was actually removed
-    assert categoryRepository.count() == initialCount - 1;
-    assert !categoryRepository.existsById(NON_DEPENDENT_ID);
-  }
-
-  @Test
-  @DisplayName("DELETE /categories/{id} should return 404 when id does not exist")
-  public void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
-
-    // Act
-    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID));
-
-    // Assert
-    resultActions.andExpect(status().isNotFound());
-  }
-
-  @Test
-  @DisplayName("DELETE /categories/{id} should return 409 when category has associated products")
-  public void deleteShouldReturnBadRequestWhenCategoryHasAssociatedProducts() throws Exception {
-
-    // Act - Attempt to delete a category that has associated products
-    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", DEPENDENT_ID));
-
-    // Assert - Should return either 409 (conflict) if products exist
-    // or 204 if no constraints. Actual behavior depends on database state.
-    resultActions.andExpect(status().isConflict());
+      // Assert
+      resultActions.andExpect(status().isConflict());
+    }
   }
 
   private String asJson(Object object) throws Exception {
     return objectMapper.writeValueAsString(object);
   }
-
 }
