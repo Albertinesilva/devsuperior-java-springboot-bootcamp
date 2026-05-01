@@ -39,14 +39,14 @@ Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evo
 
 ### 📋 Recursos principais
 
-| Recurso | Finalidade |
-|--------|------------|
-| `@Test` | Define métodos de teste |
-| `@Nested` | Organiza cenários por contexto |
-| `@DisplayName` | Melhora legibilidade |
-| `@BeforeEach` | Inicializa fixtures |
-| `Assertions` | Verifica comportamentos |
-| `AssertJ` | Assertions fluentes |
+| Recurso        | Finalidade                     |
+| -------------- | ------------------------------ |
+| `@Test`        | Define métodos de teste        |
+| `@Nested`      | Organiza cenários por contexto |
+| `@DisplayName` | Melhora legibilidade           |
+| `@BeforeEach`  | Inicializa fixtures            |
+| `Assertions`   | Verifica comportamentos        |
+| `AssertJ`      | Assertions fluentes            |
 
 ---
 
@@ -65,22 +65,22 @@ Fixtures são estruturas reutilizáveis que evitam repetição e aumentam previs
 
 ### 📚 Ciclo de Vida — JUnit 5 vs JUnit 4
 
-| JUnit 5 | JUnit 4 | Objetivo |
-|--------|--------|----------|
-| `@BeforeAll` | `@BeforeClass` | Antes de todos os testes |
-| `@AfterAll` | `@AfterClass` | Após todos os testes |
-| `@BeforeEach` | `@Before` | Antes de cada teste |
-| `@AfterEach` | `@After` | Após cada teste |
+| JUnit 5       | JUnit 4        | Objetivo                 |
+| ------------- | -------------- | ------------------------ |
+| `@BeforeAll`  | `@BeforeClass` | Antes de todos os testes |
+| `@AfterAll`   | `@AfterClass`  | Após todos os testes     |
+| `@BeforeEach` | `@Before`      | Antes de cada teste      |
+| `@AfterEach`  | `@After`       | Após cada teste          |
 
 ---
 
 ### 🏗️ Organização AAA
 
-| Etapa | Objetivo |
-|------|----------|
-| Arrange | Preparação |
-| Act | Execução |
-| Assert | Verificação |
+| Etapa   | Objetivo    |
+| ------- | ----------- |
+| Arrange | Preparação  |
+| Act     | Execução    |
+| Assert  | Verificação |
 
 ---
 
@@ -88,14 +88,14 @@ Fixtures são estruturas reutilizáveis que evitam repetição e aumentam previs
 
 ### ⚙️ Principais anotações
 
-| Annotation | Tipo | Finalidade |
-|-----------|------|------------|
-| `@SpringBootTest` | Integração | Carrega contexto completo |
+| Annotation                                | Tipo           | Finalidade                                 |
+| ----------------------------------------- | -------------- | ------------------------------------------ |
+| `@SpringBootTest`                         | Integração     | Carrega contexto completo                  |
 | `@SpringBootTest + @AutoConfigureMockMvc` | Integração Web | Testa aplicação completa sem servidor real |
-| `@WebMvcTest` | Web Layer | Carrega apenas controllers |
-| `@ExtendWith(SpringExtension.class)` | Unitário | Recursos Spring sem contexto completo |
-| `@ExtendWith(MockitoExtension.class)` | Unitário | Mockito puro |
-| `@DataJpaTest` | Repository | Carrega camada JPA com rollback |
+| `@WebMvcTest`                             | Web Layer      | Carrega apenas controllers                 |
+| `@ExtendWith(SpringExtension.class)`      | Unitário       | Recursos Spring sem contexto completo      |
+| `@ExtendWith(MockitoExtension.class)`     | Unitário       | Mockito puro                               |
+| `@DataJpaTest`                            | Repository     | Carrega camada JPA com rollback            |
 
 ---
 
@@ -123,37 +123,37 @@ Permite validar:
 
 ### 🎭 Recursos utilizados
 
-| Recurso | Objetivo |
-|--------|----------|
-| `@Mock` | Mock sem contexto |
-| `Mockito.mock()` | Mock manual |
-| `@InjectMocks` | Injeta mocks |
+| Recurso                      | Objetivo                |
+| ---------------------------- | ----------------------- |
+| `@Mock`                      | Mock sem contexto       |
+| `Mockito.mock()`             | Mock manual             |
+| `@InjectMocks`               | Injeta mocks            |
 | `@MockBean` / `@MockitoBean` | Mock no contexto Spring |
-| `when().thenReturn()` | Simula retorno |
-| `doThrow()` | Simula exceções |
-| `doNothing()` | Simula métodos void |
-| `verify()` | Verifica interações |
-| `ArgumentMatchers` | Flexibiliza argumentos |
+| `when().thenReturn()`        | Simula retorno          |
+| `doThrow()`                  | Simula exceções         |
+| `doNothing()`                | Simula métodos void     |
+| `verify()`                   | Verifica interações     |
+| `ArgumentMatchers`           | Flexibiliza argumentos  |
 
 ---
 
 ### 🆚 `@Mock` vs `@MockBean`
 
-| Recurso | Quando usar | Características |
-|--------|-------------|-----------------|
-| `@Mock` | Testes unitários puros | Mais rápido |
+| Recurso                      | Quando usar                | Características       |
+| ---------------------------- | -------------------------- | --------------------- |
+| `@Mock`                      | Testes unitários puros     | Mais rápido           |
 | `@MockBean` / `@MockitoBean` | Testes com contexto Spring | Substitui beans reais |
 
 ---
 
 ### 📌 Estratégia por camada
 
-| Camada | Estratégia |
-|-------|------------|
-| Service | `@Mock` + `@InjectMocks` |
+| Camada     | Estratégia                  |
+| ---------- | --------------------------- |
+| Service    | `@Mock` + `@InjectMocks`    |
 | Controller | `@WebMvcTest` + `@MockBean` |
-| Repository | `@DataJpaTest` |
-| Integração | `@SpringBootTest` |
+| Repository | `@DataJpaTest`              |
+| Integração | `@SpringBootTest`           |
 
 ---
 
@@ -171,11 +171,11 @@ Permite validar:
 
 ### 📌 Tipos de testes
 
-| Tipo | Objetivo | Escopo | Dependências |
-|-----|----------|--------|--------------|
-| Unitário | Validar comportamento isolado | Métodos/classes | Não |
-| Integração | Validar comunicação entre componentes | Banco/contexto | Sim |
-| Funcional | Validar fluxo completo | Sistema | Sim |
+| Tipo       | Objetivo                              | Escopo          | Dependências |
+| ---------- | ------------------------------------- | --------------- | ------------ |
+| Unitário   | Validar comportamento isolado         | Métodos/classes | Não          |
+| Integração | Validar comunicação entre componentes | Banco/contexto  | Sim          |
+| Funcional  | Validar fluxo completo                | Sistema         | Sim          |
 
 ---
 
@@ -241,7 +241,9 @@ public class ProductRepositoryTest {
     }
 }
 ```
+
 ---
+
 ## Destaques
 
 ### CategoryRepository
@@ -286,13 +288,13 @@ public class ProductRepositoryTest {
 
 ## 📈 Benefícios Estratégicos
 
-| Benefício | Impacto |
-|----------|---------|
-| Segurança contra regressões | Evolução segura |
-| Documentação viva | Clareza |
-| Isolamento arquitetural | Menor acoplamento |
-| Robustez multicamadas | Qualidade sistêmica |
-| Escalabilidade | Sustentabilidade |
+| Benefício                   | Impacto             |
+| --------------------------- | ------------------- |
+| Segurança contra regressões | Evolução segura     |
+| Documentação viva           | Clareza             |
+| Isolamento arquitetural     | Menor acoplamento   |
+| Robustez multicamadas       | Qualidade sistêmica |
+| Escalabilidade              | Sustentabilidade    |
 
 > [!IMPORTANT]
 > Testes automatizados representam investimento estrutural em qualidade contínua, confiabilidade e maturidade profissional.
@@ -305,11 +307,11 @@ public class ProductRepositoryTest {
 
 Segundo Kent Beck:
 
-| Etapa | Descrição |
-|------|-----------|
-| Red | Criar teste falhando |
-| Green | Implementar solução mínima |
-| Refactor | Melhorar design |
+| Etapa    | Descrição                  |
+| -------- | -------------------------- |
+| Red      | Criar teste falhando       |
+| Green    | Implementar solução mínima |
+| Refactor | Melhorar design            |
 
 ---
 
@@ -327,13 +329,13 @@ Segundo Kent Beck:
 
 ### 📌 Visão Geral
 
-| Princípio | Benefício |
-|----------|-----------|
-| SRP | Componentes menores |
-| OCP | Extensão segura |
-| LSP | Previsibilidade |
-| ISP | Interfaces enxutas |
-| DIP | Mocking facilitado |
+| Princípio | Benefício           |
+| --------- | ------------------- |
+| SRP       | Componentes menores |
+| OCP       | Extensão segura     |
+| LSP       | Previsibilidade     |
+| ISP       | Interfaces enxutas  |
+| DIP       | Mocking facilitado  |
 
 ---
 
@@ -359,12 +361,14 @@ private ProductRepository repository;
 ```
 
 ### Benefícios:
+
 - Menor acoplamento
 - Isolamento
 - Facilidade de testes
 - Melhor manutenção
 
 ---
+
 ### 🧩 SRP — Exemplo
 
 | Classe           | Responsabilidade     |
@@ -376,6 +380,7 @@ private ProductRepository repository;
 > SOLID melhora diretamente velocidade, confiabilidade e manutenção dos testes.
 
 ---
+
 ## 🧱 Boas Práticas Aplicadas
 
 ### 📌 Nomenclatura Profissional de Testes
@@ -403,6 +408,7 @@ private ProductRepository repository;
 | `updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist`   | Falha para ID inexistente    |
 
 ---
+
 ## 🎯 Benefícios
 
 | Benefício          | Impacto         |
@@ -422,13 +428,14 @@ private ProductRepository repository;
 
 ### ✅ Nomes profissionais
 
-| Ruim         | Bom                                        |
-| ------------ | ------------------------------------------ |
-| `testDelete` | `deleteShouldRemoveProductWhenIdExists`    |
-| `testFind`   | `findByIdShouldReturnCategoryWhenIdExists` |
+| Ruim         | Bom                                            |
+| ------------ | ---------------------------------------------- |
+| `testDelete` | `deleteShouldRemoveProductWhenIdExists`        |
+| `testFind`   | `findByIdShouldReturnCategoryWhenIdExists`     |
 | `testUpdate` | `updateShouldThrowExceptionWhenIdDoesNotExist` |
 
 ---
+
 ## 📌 Estrutura modular com @Nested
 
 Benefícios:
@@ -439,9 +446,11 @@ Benefícios:
 - Manutenção
 
 ---
+
 ## 📌 Factories e Fixtures
 
 Utilizadas:
+
 - ProductFactory
 - CategoryFactory
 - Benefícios:
@@ -451,6 +460,7 @@ Utilizadas:
 - Testes previsíveis
 
 ---
+
 ## 📂 Estrutura do Projeto de Testes
 
 ```text
@@ -465,6 +475,7 @@ test/java/com/albertsilva/dev/dscatalog
 ```
 
 ---
+
 ## 📊 Pirâmide de Testes
 
 ```
@@ -474,30 +485,33 @@ Unitários
 ```
 
 ---
+
 ### 🏛️ Princípios Arquiteturais Aplicados
 
-| Princípio | Nome Completo | Conceito | Aplicação no Projeto | Benefício |
-|----------|-------------------------------|---------|----------------------|-----------|
-| **SRP** | Single Responsibility Principle (Princípio da Responsabilidade Única) | Cada classe deve ter apenas uma única responsabilidade | `ProductService` cuida das regras de negócio, enquanto `ProductMapper` realiza apenas conversões DTO ↔ Entity | Código mais organizado, modular e fácil de testar |
-| **DIP** | Dependency Inversion Principle (Princípio da Inversão de Dependência) | Componentes devem depender de abstrações (interfaces), não de implementações concretas | `ProductService` depende de `ProductRepository` (interface), permitindo uso de mocks em testes | Menor acoplamento, maior flexibilidade e testabilidade |
-| **Desacoplamento** | Separação entre componentes | Reduz dependências rígidas entre camadas | Services, repositories e controllers possuem responsabilidades bem definidas | Facilita manutenção, evolução e refatoração |
-| **Refatoração Segura** | Evolução protegida por testes | Melhorias estruturais sem quebrar funcionalidades | Testes automatizados garantem segurança durante mudanças | Sustentabilidade de longo prazo |
-| **Sustentabilidade Evolutiva** | Capacidade de expansão contínua | Arquitetura preparada para novas features | Base robusta para crescimento do sistema | Escalabilidade profissional |
+| Princípio                      | Nome Completo                                                         | Conceito                                                                               | Aplicação no Projeto                                                                                          | Benefício                                              |
+| ------------------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **SRP**                        | Single Responsibility Principle (Princípio da Responsabilidade Única) | Cada classe deve ter apenas uma única responsabilidade                                 | `ProductService` cuida das regras de negócio, enquanto `ProductMapper` realiza apenas conversões DTO ↔ Entity | Código mais organizado, modular e fácil de testar      |
+| **DIP**                        | Dependency Inversion Principle (Princípio da Inversão de Dependência) | Componentes devem depender de abstrações (interfaces), não de implementações concretas | `ProductService` depende de `ProductRepository` (interface), permitindo uso de mocks em testes                | Menor acoplamento, maior flexibilidade e testabilidade |
+| **Desacoplamento**             | Separação entre componentes                                           | Reduz dependências rígidas entre camadas                                               | Services, repositories e controllers possuem responsabilidades bem definidas                                  | Facilita manutenção, evolução e refatoração            |
+| **Refatoração Segura**         | Evolução protegida por testes                                         | Melhorias estruturais sem quebrar funcionalidades                                      | Testes automatizados garantem segurança durante mudanças                                                      | Sustentabilidade de longo prazo                        |
+| **Sustentabilidade Evolutiva** | Capacidade de expansão contínua                                       | Arquitetura preparada para novas features                                              | Base robusta para crescimento do sistema                                                                      | Escalabilidade profissional                            |
 
 ---
+
 ## 🧠 Conclusão — Evolução Profissional
 
 Ao concluir este capítulo, o projeto DSCatalog consolida competências fundamentais para desenvolvimento backend profissional:
 
 ### 🚀 Competências adquiridas
 
-| Categoria | Competências Desenvolvidas | Impacto Profissional |
-|----------|-----------------------------|----------------------|
-| **Técnicas** | `JUnit 5`, `Mockito`, `MockMvc`, `@DataJpaTest`, `@SpringBootTest`, `TDD`, `SOLID`, testes multicamadas | Domínio completo de estratégias modernas de validação backend |
-| **Arquiteturais** | `DIP`, `SRP`, desacoplamento, refatoração segura, sustentabilidade evolutiva | Construção de sistemas escaláveis, testáveis e preparados para manutenção |
-| **Profissionais** | Qualidade enterprise, segurança contra regressão, confiabilidade sistêmica, base para CI/CD | Preparação sólida para projetos corporativos e mercado profissional |
+| Categoria         | Competências Desenvolvidas                                                                              | Impacto Profissional                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Técnicas**      | `JUnit 5`, `Mockito`, `MockMvc`, `@DataJpaTest`, `@SpringBootTest`, `TDD`, `SOLID`, testes multicamadas | Domínio completo de estratégias modernas de validação backend             |
+| **Arquiteturais** | `DIP`, `SRP`, desacoplamento, refatoração segura, sustentabilidade evolutiva                            | Construção de sistemas escaláveis, testáveis e preparados para manutenção |
+| **Profissionais** | Qualidade enterprise, segurança contra regressão, confiabilidade sistêmica, base para CI/CD             | Preparação sólida para projetos corporativos e mercado profissional       |
 
 ---
+
 ## 📌 Resultado:
 
 O projeto deixa de ser apenas uma API CRUD e passa a representar:
