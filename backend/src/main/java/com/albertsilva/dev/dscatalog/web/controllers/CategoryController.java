@@ -266,7 +266,7 @@ public class CategoryController {
    * </p>
    * <ul>
    * <li>404 → categoria não encontrada</li>
-   * <li>400 → violação de integridade</li>
+   * <li>409 → violação de integridade</li>
    * </ul>
    *
    * @param id identificador da categoria
@@ -275,7 +275,7 @@ public class CategoryController {
   @Operation(summary = "Remove uma categoria", description = "Exclui uma categoria pelo ID. Retorna erro se houver integridade referencial.", responses = {
       @ApiResponse(responseCode = "204", description = "Categoria deletada com sucesso"),
       @ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class))),
-      @ApiResponse(responseCode = "400", description = "Violação de integridade - existem entidades relacionadas", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
+      @ApiResponse(responseCode = "409", description = "Violação de integridade - existem entidades relacionadas", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
   })
   @DeleteMapping(value = "/{id}")
   public ResponseEntity<Void> delete(@PathVariable Long id) {

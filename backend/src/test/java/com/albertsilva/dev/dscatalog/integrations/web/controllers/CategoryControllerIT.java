@@ -2,6 +2,8 @@ package com.albertsilva.dev.dscatalog.integrations.web.controllers;
 
 import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.EXISTING_ID;
 import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_EXISTING_ID;
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_DEPENDENT_ID;
+import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.DEPENDENT_ID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -241,6 +243,48 @@ public class CategoryControllerIT {
 
     // Assert
     resultActions.andExpect(status().isNotFound());
+  }
+
+  @Test
+  @DisplayName("DELETE /categories/{id} should delete category when id exists and has no dependencies")
+  public void deleteShouldRemoveCategoryWhenIdExistsAndHasNoDependencies() throws Exception {
+
+    // Arrange
+    long initialCount = categoryRepository.count();
+    assert categoryRepository.existsById(NON_DEPENDENT_ID);
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_DEPENDENT_ID));
+
+    // Assert
+    resultActions.andExpect(status().isNoContent());
+
+    // Verify that the category was actually removed
+    assert categoryRepository.count() == initialCount - 1;
+    assert !categoryRepository.existsById(NON_DEPENDENT_ID);
+  }
+
+  @Test
+  @DisplayName("DELETE /categories/{id} should return 404 when id does not exist")
+  public void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID));
+
+    // Assert
+    resultActions.andExpect(status().isNotFound());
+  }
+
+  @Test
+  @DisplayName("DELETE /categories/{id} should return 409 when category has associated products")
+  public void deleteShouldReturnBadRequestWhenCategoryHasAssociatedProducts() throws Exception {
+
+    // Act - Attempt to delete a category that has associated products
+    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", DEPENDENT_ID));
+
+    // Assert - Should return either 409 (conflict) if products exist
+    // or 204 if no constraints. Actual behavior depends on database state.
+    resultActions.andExpect(status().isConflict());
   }
 
   private String asJson(Object object) throws Exception {
