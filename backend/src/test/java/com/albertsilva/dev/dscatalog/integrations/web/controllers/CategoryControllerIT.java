@@ -4,7 +4,9 @@ import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.EXISTING_ID;
 import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_EXISTING_ID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
+import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -142,6 +146,62 @@ public class CategoryControllerIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.totalElements").value(0));
+  }
+
+  @Test
+  @DisplayName("POST /categories should insert category and return 201")
+  public void insertShouldCreateCategoryAndReturnCreated() throws Exception {
+
+    // Arrange
+    CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
+    String jsonRequest = asJson(request);
+    long initialCount = categoryRepository.count();
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(post(BASE_URL)
+        .content(jsonRequest)
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isCreated())
+        .andExpect(header().exists("Location"))
+        .andExpect(jsonPath("$.id").isNotEmpty())
+        .andExpect(jsonPath("$.name").value(request.name()))
+        .andExpect(jsonPath("$.description").value(request.description()))
+        .andExpect(jsonPath("$.active").value(request.active()));
+
+    // Verify that the category was actually persisted
+    assert categoryRepository.count() == initialCount + 1;
+  }
+
+  @Test
+  @DisplayName("POST /categories should create category with valid data")
+  public void insertShouldCreateCategoryWithValidData() throws Exception {
+
+    // Arrange
+    CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
+    String jsonRequest = asJson(request);
+    long initialCount = categoryRepository.count();
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(post(BASE_URL)
+        .content(jsonRequest)
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isCreated())
+        .andExpect(header().exists("Location"))
+        .andExpect(jsonPath("$.name").value(request.name()));
+
+    assert categoryRepository.count() == initialCount + 1;
+  }
+
+  private String asJson(Object object) throws Exception {
+    return objectMapper.writeValueAsString(object);
   }
 
 }

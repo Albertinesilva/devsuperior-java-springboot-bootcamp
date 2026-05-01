@@ -6,6 +6,7 @@ import static com.albertsilva.dev.dscatalog.factory.ProductFactory.NON_EXISTING_
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -214,6 +215,35 @@ public class ProductControllerIT {
         .content(jsonRequest)
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions.andExpect(status().isNotFound());
+  }
+
+  @Test
+  @DisplayName("DELETE /products/{id} should delete product when id exists")
+  public void deleteShouldRemoveProductWhenIdExists() throws Exception {
+
+    // Arrange
+    long initialCount = productRepository.count();
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", EXISTING_ID));
+
+    // Assert
+    resultActions.andExpect(status().isNoContent());
+
+    // Verify that the product was actually removed
+    assert productRepository.count() == initialCount - 1;
+    assert !productRepository.existsById(EXISTING_ID);
+  }
+
+  @Test
+  @DisplayName("DELETE /products/{id} should return 404 when id does not exist")
+  public void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID));
 
     // Assert
     resultActions.andExpect(status().isNotFound());
