@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @WebMvcTest(CategoryController.class)
 @Import(ControllerExceptionHandler.class)
 @DisplayName("Tests for CategoryController")
-public class CategoryControllerTest {
+class CategoryControllerTest {
 
   private static final String BASE_URL = "/api/v1/categories";
 
@@ -69,182 +70,202 @@ public class CategoryControllerTest {
 
   @BeforeEach
   void setUp() {
-
     categoryResponse = CategoryFactory.createCategoryResponse();
     page = new PageImpl<>(List.of(categoryResponse), PageRequest.of(0, 10), 1);
   }
 
-  @Test
-  @DisplayName("GET /categories should return paged categories")
-  void findAllShouldReturnPage() throws Exception {
+  @Nested
+  @DisplayName("POST /categories")
+  class InsertTests {
 
-    // Arrange
-    when(categoryService.findAllPaged(any(Pageable.class))).thenReturn(page);
+    @Test
+    @DisplayName("Should insert category successfully")
+    void insertShouldReturnCreatedCategory() throws Exception {
 
-    // Act
-    ResultActions resultActions = mockMvc.perform(get(BASE_URL).accept(MediaType.APPLICATION_JSON));
+      // Arrange
+      CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
+      String jsonRequest = asJson(request);
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content[0].id").value(EXISTING_ID))
-        .andExpect(jsonPath("$.content[0].name").value(categoryResponse.name()))
-        .andExpect(jsonPath("$.totalElements").value(1));
+      when(categoryService.insert(any(CategoryCreateRequest.class))).thenReturn(categoryResponse);
 
-    verify(categoryService).findAllPaged(any(Pageable.class));
+      // Act
+      ResultActions resultActions = mockMvc.perform(post(BASE_URL)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isCreated())
+          .andExpect(header().exists("Location"))
+          .andExpect(jsonPath("$.id").value(categoryResponse.id()))
+          .andExpect(jsonPath("$.name").value(categoryResponse.name()));
+
+      verify(categoryService).insert(any(CategoryCreateRequest.class));
+    }
   }
 
-  @Test
-  @DisplayName("GET /categories/{id} should return category when id exists")
-  void findByIdShouldReturnCategoryWhenIdExists() throws Exception {
+  // =========================
+  // READ
+  // =========================
+  @Nested
+  @DisplayName("GET /categories")
+  class FindAllTests {
 
-    // Arrange
-    when(categoryService.findById(EXISTING_ID)).thenReturn(categoryResponse);
+    @Test
+    @DisplayName("Should return paged categories")
+    void findAllShouldReturnPage() throws Exception {
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "/{id}", EXISTING_ID)
-            .accept(MediaType.APPLICATION_JSON));
+      // Arrange
+      when(categoryService.findAllPaged(any(Pageable.class))).thenReturn(page);
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(EXISTING_ID))
-        .andExpect(jsonPath("$.name").value(categoryResponse.name()));
+      // Act
+      ResultActions resultActions = mockMvc.perform(get(BASE_URL).accept(MediaType.APPLICATION_JSON));
 
-    verify(categoryService).findById(EXISTING_ID);
+      // Assert
+      resultActions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content").isArray())
+          .andExpect(jsonPath("$.content[0].id").value(EXISTING_ID))
+          .andExpect(jsonPath("$.content[0].name").value(categoryResponse.name()))
+          .andExpect(jsonPath("$.totalElements").value(1));
+
+      verify(categoryService).findAllPaged(any(Pageable.class));
+    }
   }
 
-  @Test
-  @DisplayName("GET /categories/{id} should return 404 when id does not exist")
-  void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+  @Nested
+  @DisplayName("GET /categories/{id}")
+  class FindByIdTests {
 
-    // Arrange
-    when(categoryService.findById(NON_EXISTING_ID))
-        .thenThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID));
+    @Test
+    @DisplayName("Should return category when id exists")
+    void findByIdShouldReturnCategoryWhenIdExists() throws Exception {
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(get(BASE_URL + "/{id}", NON_EXISTING_ID));
+      // Arrange
+      when(categoryService.findById(EXISTING_ID)).thenReturn(categoryResponse);
 
-    // Assert
-    resultActions.andExpect(status().isNotFound());
+      // Act
+      ResultActions resultActions = mockMvc
+          .perform(get(BASE_URL + "/{id}", EXISTING_ID).accept(MediaType.APPLICATION_JSON));
 
-    verify(categoryService).findById(NON_EXISTING_ID);
+      // Assert
+      resultActions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(EXISTING_ID))
+          .andExpect(jsonPath("$.name").value(categoryResponse.name()));
+
+      verify(categoryService).findById(EXISTING_ID);
+    }
+
+    @Test
+    @DisplayName("Should return 404 when id does not exist")
+    void findByIdShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+      // Arrange
+      when(categoryService.findById(NON_EXISTING_ID))
+          .thenThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID));
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(get(BASE_URL + "/{id}", NON_EXISTING_ID));
+
+      // Assert
+      resultActions.andExpect(status().isNotFound());
+
+      verify(categoryService).findById(NON_EXISTING_ID);
+    }
   }
 
-  @Test
-  @DisplayName("POST /categories should insert category")
-  void insertShouldReturnCreatedCategory() throws Exception {
+  @Nested
+  @DisplayName("PATCH /categories/{id}")
+  class UpdateTests {
 
-    // Arrange
-    CategoryCreateRequest request = CategoryFactory.createCategoryCreateRequest();
-    String jsonRequest = asJson(request);
+    @Test
+    @DisplayName("Should update category when id exists")
+    void updateShouldReturnUpdatedCategoryWhenIdExists() throws Exception {
 
-    when(categoryService.insert(any(CategoryCreateRequest.class))).thenReturn(categoryResponse);
+      // Arrange
+      CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
+      String jsonRequest = asJson(request);
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(post(BASE_URL)
-            .content(jsonRequest)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON));
+      CategoryResponse updatedResponse = CategoryFactory.createUpdatedCategoryResponse();
 
-    // Assert
-    resultActions
-        .andExpect(status().isCreated())
-        .andExpect(header().exists("Location"))
-        .andExpect(jsonPath("$.id").value(categoryResponse.id()))
-        .andExpect(jsonPath("$.name").value(categoryResponse.name()));
+      when(categoryService.update(eq(EXISTING_ID), any(CategoryUpdateRequest.class))).thenReturn(updatedResponse);
 
-    verify(categoryService).insert(any(CategoryCreateRequest.class));
+      // Act
+      ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", EXISTING_ID)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(updatedResponse.id()))
+          .andExpect(jsonPath("$.name").value(updatedResponse.name()));
+
+      verify(categoryService).update(eq(EXISTING_ID), any(CategoryUpdateRequest.class));
+    }
+
+    @Test
+    @DisplayName("Should return 404 when id does not exist")
+    void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+      // Arrange
+      CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
+      String jsonRequest = asJson(request);
+
+      when(categoryService.update(eq(NON_EXISTING_ID), any(CategoryUpdateRequest.class)))
+          .thenThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID));
+
+      // Act
+      ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
+          .content(jsonRequest)
+          .contentType(MediaType.APPLICATION_JSON));
+
+      // Assert
+      resultActions.andExpect(status().isNotFound());
+
+      verify(categoryService).update(eq(NON_EXISTING_ID), any(CategoryUpdateRequest.class));
+    }
   }
 
-  @Test
-  @DisplayName("PATCH /categories/{id} should update category when id exists")
-  void updateShouldReturnUpdatedCategoryWhenIdExists() throws Exception {
+  @Nested
+  @DisplayName("DELETE /categories/{id}")
+  class DeleteTests {
 
-    // Arrange
-    CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
-    String jsonRequest = asJson(request);
+    @Test
+    @DisplayName("Should delete category when id exists")
+    void deleteShouldReturnNoContentWhenIdExists() throws Exception {
 
-    CategoryResponse updatedResponse = CategoryFactory.createUpdatedCategoryResponse();
+      // Arrange
+      doNothing().when(categoryService).delete(EXISTING_ID);
 
-    when(categoryService.update(eq(EXISTING_ID), any(CategoryUpdateRequest.class))).thenReturn(updatedResponse);
+      // Act
+      ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", EXISTING_ID));
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(patch(BASE_URL + "/{id}", EXISTING_ID)
-            .content(jsonRequest)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON));
+      // Assert
+      resultActions.andExpect(status().isNoContent());
 
-    // Assert
-    resultActions
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(updatedResponse.id()))
-        .andExpect(jsonPath("$.name").value(updatedResponse.name()));
+      verify(categoryService).delete(EXISTING_ID);
+    }
 
-    verify(categoryService).update(eq(EXISTING_ID), any(CategoryUpdateRequest.class));
-  }
+    @Test
+    @DisplayName("Should return 404 when id does not exist")
+    void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
 
-  @Test
-  @DisplayName("PATCH /categories/{id} should return 404 when id does not exist")
-  void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+      // Arrange
+      doThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID)).when(categoryService)
+          .delete(NON_EXISTING_ID);
 
-    // Arrange
-    CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
-    String jsonRequest = asJson(request);
+      // Act
+      ResultActions resultActions = mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID));
 
-    when(categoryService.update(eq(NON_EXISTING_ID), any(CategoryUpdateRequest.class)))
-        .thenThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID));
+      // Assert
+      resultActions.andExpect(status().isNotFound());
 
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
-            .content(jsonRequest)
-            .contentType(MediaType.APPLICATION_JSON));
-
-    // Assert
-    resultActions.andExpect(status().isNotFound());
-
-    verify(categoryService).update(eq(NON_EXISTING_ID), any(CategoryUpdateRequest.class));
-  }
-
-  @Test
-  @DisplayName("DELETE /categories/{id} should delete category when id exists")
-  void deleteShouldReturnNoContentWhenIdExists() throws Exception {
-
-    // Arrange
-    doNothing().when(categoryService).delete(EXISTING_ID);
-
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(delete(BASE_URL + "/{id}", EXISTING_ID));
-
-    // Assert
-    resultActions.andExpect(status().isNoContent());
-
-    verify(categoryService).delete(EXISTING_ID);
-  }
-
-  @Test
-  @DisplayName("DELETE /categories/{id} should return 404 when id does not exist")
-  void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
-
-    // Arrange
-    doThrow(new ResourceNotFoundException("Entity not found id: " + NON_EXISTING_ID)).when(categoryService)
-        .delete(NON_EXISTING_ID);
-
-    // Act
-    ResultActions resultActions = mockMvc
-        .perform(delete(BASE_URL + "/{id}", NON_EXISTING_ID));
-
-    // Assert
-    resultActions.andExpect(status().isNotFound());
-
-    verify(categoryService).delete(NON_EXISTING_ID);
+      verify(categoryService).delete(NON_EXISTING_ID);
+    }
   }
 
   private String asJson(Object object) throws Exception {
