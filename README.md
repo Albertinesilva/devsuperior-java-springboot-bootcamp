@@ -1,24 +1,23 @@
 # 🧪 Capítulo 02 — Testes Automatizados no Back-End com Spring Boot
 
-<p style="text-align: justify;">
-<em>Este capítulo apresenta a construção de uma estratégia profissional de testes automatizados aplicada ao projeto <strong>DSCatalog</strong>, utilizando <code>Java</code>, <code>Spring Boot 3</code>, <code>JUnit 5</code>, <code>Mockito</code>, <code>MockMvc</code> e boas práticas arquiteturais para garantir qualidade, previsibilidade, segurança evolutiva e manutenção sustentável.</em>
+<p align="justify">
+<em>Este capítulo apresenta a construção de uma estratégia profissional de testes automatizados aplicada ao projeto <strong>DSCatalog</strong>, utilizando <code>Java</code>, <code>Spring Boot 3</code>, <code>JUnit 5</code>, <code>Mockito</code>, <code>MockMvc</code> e princípios sólidos de engenharia de software para garantir qualidade, previsibilidade, segurança evolutiva e manutenção sustentável.</em>
 </p>
 
 ---
 
-## 📚 Contexto do Projeto
+# 📚 Contexto do Projeto
 
-Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evolui para um cenário de engenharia de software orientado à qualidade, incorporando múltiplos níveis de validação automatizada:
+Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evolui para um cenário robusto de validação automatizada, incorporando:
 
 - **Testes unitários** (Service Layer)
-- **Testes de integração parcial** (Repository Layer)
+- **Testes de persistência** (Repository Layer)
 - **Testes da camada web** (Controller Layer)
-- **Validação de persistência com JPA**
-- **Testes de paginação, ordenação e busca customizada**
-- **Validação de relacionamentos ManyToMany**
+- **Validação de relacionamentos JPA**
+- **Paginação, ordenação e buscas customizadas**
 - **Mocking e isolamento de dependências**
-- **Tratamento e tradução de exceções técnicas para regras de negócio**
 - **Factories para fixtures reutilizáveis**
+- **Tratamento de exceções**
 - **Princípios de TDD**
 - **Aplicação de SOLID voltada à testabilidade**
 
@@ -30,63 +29,77 @@ Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evo
 
 - Compreender testes unitários, integração e funcionais
 - Aplicar isolamento, previsibilidade e independência
-- Reduzir regressões e custos de manutenção
-- Produzir documentação viva por meio de testes
+- Reduzir regressões
+- Produzir documentação viva
+- Garantir sustentabilidade arquitetural
+
+---
 
 ## 2. Implementar testes robustos com JUnit 5
 
-📋 Principais recursos utilizados
+### 📋 Recursos principais
+
 | Recurso | Finalidade |
-| -------------------- | ---------------------------------------------- |
+|--------|------------|
 | `@Test` | Define métodos de teste |
-| `@Nested` | Organiza testes por contexto ou funcionalidade |
-| `@DisplayName` | Melhora legibilidade e documentação |
-| `Assertions (JUnit)` | Valida resultados esperados |
-| `AssertJ` | Assertions mais fluentes e expressivas |
-| `@BeforeEach` | Inicializa cenários antes de cada teste |
+| `@Nested` | Organiza cenários por contexto |
+| `@DisplayName` | Melhora legibilidade |
+| `@BeforeEach` | Inicializa fixtures |
+| `Assertions` | Verifica comportamentos |
+| `AssertJ` | Assertions fluentes |
 
-🧩 Fixtures
+---
 
-Fixtures são estruturas reutilizáveis para preparar dados, cenários e objetos padrão, reduzindo repetição e aumentando previsibilidade.
+### 🧩 Fixtures
 
-Benefícios:
+Fixtures são estruturas reutilizáveis que evitam repetição e aumentam previsibilidade.
 
-- Reuso de objetos
-- Menor duplicação
-- Testes mais organizados
-- Melhor manutenção
+**Benefícios:**
 
-📚 Ciclo de Vida — JUnit 5 vs JUnit 4
+- Reuso
+- Clareza
+- Padronização
+- Facilidade de manutenção
 
-| JUnit 5       | JUnit 4        | Objetivo                         |
-| ------------- | -------------- | -------------------------------- |
-| `@BeforeAll`  | `@BeforeClass` | Preparação antes de todos testes |
-| `@AfterAll`   | `@AfterClass`  | Finalização após todos testes    |
-| `@BeforeEach` | `@Before`      | Preparação antes de cada teste   |
-| `@AfterEach`  | `@After`       | Finalização após cada teste      |
+---
 
-🏗️ Organização AAA
+### 📚 Ciclo de Vida — JUnit 5 vs JUnit 4
 
-| Etapa   | Objetivo          |
-| ------- | ----------------- |
-| Arrange | Preparar cenário  |
-| Act     | Executar ação     |
-| Assert  | Validar resultado |
+| JUnit 5 | JUnit 4 | Objetivo |
+|--------|--------|----------|
+| `@BeforeAll` | `@BeforeClass` | Antes de todos os testes |
+| `@AfterAll` | `@AfterClass` | Após todos os testes |
+| `@BeforeEach` | `@Before` | Antes de cada teste |
+| `@AfterEach` | `@After` | Após cada teste |
+
+---
+
+### 🏗️ Organização AAA
+
+| Etapa | Objetivo |
+|------|----------|
+| Arrange | Preparação |
+| Act | Execução |
+| Assert | Verificação |
+
+---
 
 ## 3. Aplicar estratégias reais no ecossistema Spring Boot
 
-⚙️ Principais anotações de teste
+### ⚙️ Principais anotações
 
-| Annotation                                | Tipo                      | Objetivo                                          |
-| ----------------------------------------- | ------------------------- | ------------------------------------------------- |
-| `@SpringBootTest`                         | Integração                | Carrega todo o contexto da aplicação              |
-| `@SpringBootTest + @AutoConfigureMockMvc` | Integração Web            | Testa aplicação completa + web sem subir servidor |
-| `@WebMvcTest(Classe.class)`               | Unidade Web               | Carrega apenas camada de controlador              |
-| `@ExtendWith(SpringExtension.class)`      | Unidade Service/Component | Permite recursos Spring sem contexto completo     |
-| `@ExtendWith(MockitoExtension.class)`     | Unidade                   | Mocking puro com Mockito                          |
-| `@DataJpaTest`                            | Unidade Repository        | Carrega apenas JPA, com rollback automático       |
+| Annotation | Tipo | Finalidade |
+|-----------|------|------------|
+| `@SpringBootTest` | Integração | Carrega contexto completo |
+| `@SpringBootTest + @AutoConfigureMockMvc` | Integração Web | Testa aplicação completa sem servidor real |
+| `@WebMvcTest` | Web Layer | Carrega apenas controllers |
+| `@ExtendWith(SpringExtension.class)` | Unitário | Recursos Spring sem contexto completo |
+| `@ExtendWith(MockitoExtension.class)` | Unitário | Mockito puro |
+| `@DataJpaTest` | Repository | Carrega camada JPA com rollback |
 
-🌐 MockMvc
+---
+
+### 🌐 MockMvc
 
 Permite validar:
 
@@ -95,87 +108,80 @@ Permite validar:
 - JSON
 - Headers
 - Serialização
-- Tratamento de exceções
+- Exception Handling
 
-Benefícios:
+**Benefícios:**
 
-- Sem subir servidor
 - Rápido
 - Isolado
-- Próximo da execução real
+- Sem servidor real
+- Alta confiabilidade
+
+---
 
 ## 4. Simular dependências com Mockito
 
-🎭 Principais recursos
+### 🎭 Recursos utilizados
 
-| Recurso                      | Objetivo                              |
-| ---------------------------- | ------------------------------------- |
-| `@Mock`                      | Cria mocks sem contexto Spring        |
-| `Mockito.mock()`             | Mock manual                           |
-| `@InjectMocks`               | Injeta dependências mockadas          |
-| `@MockBean` / `@MockitoBean` | Mocka beans dentro do contexto Spring |
-| `when().thenReturn()`        | Simula retorno                        |
-| `doThrow()`                  | Simula exceções                       |
-| `doNothing()`                | Simula métodos void                   |
-| `verify()`                   | Verifica interações                   |
-| `ArgumentMatchers`           | Flexibiliza argumentos                |
+| Recurso | Objetivo |
+|--------|----------|
+| `@Mock` | Mock sem contexto |
+| `Mockito.mock()` | Mock manual |
+| `@InjectMocks` | Injeta mocks |
+| `@MockBean` / `@MockitoBean` | Mock no contexto Spring |
+| `when().thenReturn()` | Simula retorno |
+| `doThrow()` | Simula exceções |
+| `doNothing()` | Simula métodos void |
+| `verify()` | Verifica interações |
+| `ArgumentMatchers` | Flexibiliza argumentos |
 
-🆚 @Mock vs @MockBean
+---
 
-| Recurso                      | Quando usar         | Características             |
-| ---------------------------- | ------------------- | --------------------------- |
-| `@Mock`                      | Sem contexto Spring | Mais rápido, leve, unitário |
-| `@MockBean` / `@MockitoBean` | Com contexto Spring | Substitui beans reais       |
+### 🆚 `@Mock` vs `@MockBean`
 
-📌 Exemplo @Mock
+| Recurso | Quando usar | Características |
+|--------|-------------|-----------------|
+| `@Mock` | Testes unitários puros | Mais rápido |
+| `@MockBean` / `@MockitoBean` | Testes com contexto Spring | Substitui beans reais |
 
-```java
-@Mock
-private ProductRepository repository;
-```
+---
 
-📌 Exemplo @MockBean
+### 📌 Estratégia por camada
 
-```java
-@MockBean
-private ProductService productService;
-```
+| Camada | Estratégia |
+|-------|------------|
+| Service | `@Mock` + `@InjectMocks` |
+| Controller | `@WebMvcTest` + `@MockBean` |
+| Repository | `@DataJpaTest` |
+| Integração | `@SpringBootTest` |
 
-🧠 Regra prática
-
-| Camada     | Estratégia                   |
-| ---------- | ---------------------------- |
-| Service    | `@Mock` + `@InjectMocks`     |
-| Controller | `@MockBean` / `@MockitoBean` |
-| Repository | `@DataJpaTest`               |
-| Integração | `@SpringBootTest`            |
+---
 
 ## 5. Aplicar TDD e SOLID
 
-- Desenvolvimento guiado por testes
-- Design desacoplado
-- Código orientado a manutenção
-- Melhor arquitetura para evolução contínua
+- Desenvolvimento orientado por testes
+- Código desacoplado
+- Arquitetura evolutiva
+- Refatoração segura
+- Design profissional
 
 ---
 
 # 🧠 Fundamentos de Testes Automatizados
 
-## 📌 Tipos de Testes
+## 📌 Tipos de testes
 
-| Tipo       | Objetivo                            | Escopo                 | Dependências Externas |
-| ---------- | ----------------------------------- | ---------------------- | --------------------- |
-| Unitário   | Validar unidades isoladas           | Métodos / classes      | Não                   |
-| Integração | Validar interação entre componentes | Banco / JPA / contexto | Sim                   |
-| Funcional  | Validar comportamento completo      | Fluxos reais           | Sim                   |
+| Tipo | Objetivo | Escopo | Dependências |
+|-----|----------|--------|--------------|
+| Unitário | Validar comportamento isolado | Métodos/classes | Não |
+| Integração | Validar comunicação entre componentes | Banco/contexto | Sim |
+| Funcional | Validar fluxo completo | Sistema | Sim |
 
 ---
 
-## 🧪 Testes Unitários
+# 🧪 Testes Unitários no Projeto
 
-Validam regras de negócio isoladamente, focando em comportamento da classe.
-
-### Aplicado no projeto:
+### Aplicados em:
 
 - `CategoryServiceTest`
 - `ProductServiceTest`
@@ -188,454 +194,305 @@ Validam regras de negócio isoladamente, focando em comportamento da classe.
 - FindById
 - FindAllPaged
 - SearchByName
-- Tradução de exceções:
-  - `EntityNotFoundException`
-  - `DataIntegrityViolationException`
-  - `ResourceNotFoundException`
-  - `DatabaseException`
+- Tratamento de exceções
 
 ### Benefícios:
 
-- Alta velocidade
-- Isolamento total
-- Segurança de regra de negócio
-- Facilidade de refatoração
+- Velocidade
+- Segurança
+- Isolamento
+- Refatoração confiável
 
 ---
 
-## 🔗 Testes de Persistência (Repository)
+# 🔗 Testes de Repository
 
-Os testes de repository validam:
+### Validam:
 
 - Persistência real
-- Auto geração de IDs
-- Atualização de entidades
-- Exclusão
-- Busca customizada
+- Geração de IDs
 - Paginação
 - Ordenação
+- Queries customizadas
 - Integridade relacional
-- Join tables ManyToMany
+- ManyToMany
 
-### Aplicado com:
+### Aplicação:
 
 ```java
 @DataJpaTest
+public class ProductRepositoryTest {
+    @Autowired
+    private ProductRepository repository;
+
+    @Test
+    public void testInsert() {
+        // Arrange
+        Product product = new Product(null, "Test Product", "Description", 10.0, "image.jpg");
+
+        // Act
+        Product savedProduct = repository.save(product);
+
+        // Assert
+        Assertions.assertNotNull(savedProduct.getId());
+        Assertions.assertEquals("Test Product", savedProduct.getName());
+    }
+}
 ```
+---
+## Destaques
 
-### Destaques do projeto:
+### CategoryRepository
 
-### CategoryRepository:
+- Busca por nome
+- Ordenação
+- Segurança relacional
 
-- `findByNameContainingIgnoreCase`
-- Ordenação alfabética
-- Delete seguro sem exclusão de produtos relacionados
-
-### ProductRepository:
+### ProductRepository
 
 - Persistência com categorias
-- Remoção de associações ManyToMany
-- Preservação de categorias após exclusão de produto
+- Exclusão segura
+- Preservação relacional
 
 ---
 
-## 🌐 Testes Web (Controllers)
+# 🌐 Testes Web (Controllers)
 
-### Ferramentas:
+## Ferramentas:
 
 - `@WebMvcTest`
 - `MockMvc`
 - `ObjectMapper`
 - `ControllerExceptionHandler`
 
-### Validações realizadas:
+## Cobertura:
 
-- Status HTTP (`200`, `201`, `204`, `404`)
-- JSON payload
-- Headers (`Location`)
+- POST
+- GET
+- PATCH
+- DELETE
+
+## Validações:
+
+- Status HTTP
+- JSON
+- Headers
 - Serialização
-- Tratamento global de exceções
-
-### Endpoints cobertos:
-
-### CategoryController:
-
-- POST
-- GET all
-- GET by id
-- PATCH
-- DELETE
-
-### ProductController:
-
-- POST
-- GET all
-- GET by id
-- PATCH
-- DELETE
+- Exceções globais
 
 ---
 
-# 📈 Benefícios Estratégicos Obtidos
+# 📈 Benefícios Estratégicos
 
-| Benefício                   | Impacto Real                       |
-| --------------------------- | ---------------------------------- |
-| Segurança contra regressões | Refatoração confiável              |
-| Documentação viva           | Clareza técnica                    |
-| Isolamento arquitetural     | Menor acoplamento                  |
-| Cobertura multicamadas      | Robustez sistêmica                 |
-| Evolução sustentável        | Escalabilidade                     |
-| Qualidade profissional      | Preparação para mercado enterprise |
-
----
+| Benefício | Impacto |
+|----------|---------|
+| Segurança contra regressões | Evolução segura |
+| Documentação viva | Clareza |
+| Isolamento arquitetural | Menor acoplamento |
+| Robustez multicamadas | Qualidade sistêmica |
+| Escalabilidade | Sustentabilidade |
 
 > [!IMPORTANT]
-> Testes automatizados representam investimento estrutural em confiabilidade, manutenção, escalabilidade e maturidade profissional.
+> Testes automatizados representam investimento estrutural em qualidade contínua, confiabilidade e maturidade profissional.
 
 ---
 
-# 🔄 TDD — Test Driven Development (Conceito Clássico)
+# 🔄 TDD — Test Driven Development
 
-## 📖 Definição
+## 📖 Conceito
 
-Segundo Kent Beck, TDD é uma metodologia onde o desenvolvimento parte da especificação comportamental antes da implementação.
+Segundo Kent Beck:
 
-### Ciclo clássico:
-
-| Etapa    | Descrição                      |
-| -------- | ------------------------------ |
-| Red      | Escreva um teste que falha     |
-| Green    | Implemente o mínimo necessário |
-| Refactor | Melhore mantendo segurança     |
+| Etapa | Descrição |
+|------|-----------|
+| Red | Criar teste falhando |
+| Green | Implementar solução mínima |
+| Refactor | Melhorar design |
 
 ---
 
-## 🧭 Aplicação prática no DSCatalog
+# 🚀 Benefícios
 
-Embora o projeto também siga abordagem educacional incremental, sua estrutura demonstra princípios clássicos de TDD:
-
-- Requisitos claramente definidos
-- Testes para sucesso e falha
-- Cobertura de exceções
-- Evolução segura
-- Refatoração protegida
-
----
-
-## 🚀 Vantagens do TDD
-
-- Código orientado a requisitos
+- Requisitos claros
+- Menor regressão
 - Melhor design
-- Menor acoplamento
-- Cobertura natural elevada
-- Segurança evolutiva
-- Facilidade de manutenção
+- Maior cobertura
+- Código desacoplado
 
 ---
 
 # 🏛️ SOLID Aplicado à Testabilidade
 
-## 📌 Visão Geral Simplificada
+## 📌 Visão Geral
 
-| Princípio | Significado               | Benefício para testes     |
-| --------- | ------------------------- | ------------------------- |
-| SRP       | Responsabilidade única    | Classes menores           |
-| OCP       | Aberto para extensão      | Menos impacto em mudanças |
-| LSP       | Substituição segura       | Previsibilidade           |
-| ISP       | Interfaces específicas    | Mocks menores             |
-| DIP       | Dependência de abstrações | Facilidade de mocking     |
+| Princípio | Benefício |
+|----------|-----------|
+| SRP | Componentes menores |
+| OCP | Extensão segura |
+| LSP | Previsibilidade |
+| ISP | Interfaces enxutas |
+| DIP | Mocking facilitado |
 
 ---
 
-## 🔽 DIP — Exemplo Real no Projeto
+## 🔽 DIP — Exemplo prático
 
-### Problema ruim:
+### ❌ Ruim:
 
 ```java
-ProductService depende diretamente de ProductRepositoryImpl
+ProductService depende de ProductRepositoryImpl
 ```
 
-### Solução correta:
+✅ Correto:
 
 ```java
 ProductService depende de ProductRepository (interface)
 ```
 
-### Resultado:
+Resultado:
 
 ```java
 @Mock
 private ProductRepository repository;
 ```
 
-### Benefícios:
-
-- Isolamento
-- Mocking simples
-- Testes rápidos
+Benefícios:
 - Menor acoplamento
+- Isolamento
+- Facilidade de testes
+- Melhor manutenção
 
 ---
+🧩 SRP — Exemplo
+| Classe           | Responsabilidade     |
+| ---------------- | -------------------- |
+| `ProductService` | Regras de negócio    |
+| `ProductMapper`  | Conversão DTO/Entity |
 
-## 🧩 SRP — Exemplo prático
+>[!TIP]
+> SOLID melhora diretamente velocidade, confiabilidade e manutenção dos testes.
 
-### ProductService:
+🧱 Boas Práticas Aplicadas
+📌 Nomenclatura Profissional de Testes
+Estrutura:
 
-Responsável apenas por regras de negócio.
-
-### ProductMapper:
-
-Responsável apenas por transformação DTO ↔ Entity.
-
-### Benefício:
-
-Cada componente pode ser testado separadamente.
-
----
-
-> [!TIP]
-> SOLID não melhora apenas design — melhora diretamente velocidade, simplicidade e confiabilidade dos testes.
-
----
-
-# 🧱 Boas Práticas Aplicadas no Projeto
-
-## 📌 Nomenclatura Profissional
-
-### Padrão adotado:
-
-| Estrutura     | Objetivo                                   |
-| ------------- | ------------------------------------------ |
-| `<ação>`      | Qual método ou operação está sendo testado |
-| `Should`      | Indica o comportamento esperado            |
-| `<resultado>` | Resultado ou efeito esperado               |
-| `When`        | Define o cenário ou condição               |
-| `<cenário>`   | Situação específica do teste               |
-
-```txt
+```java
 <ação>Should<resultado>When<cenário>
 ```
 
-### Exemplos reais:
+| Elemento      | Função                 |
+| ------------- | ---------------------- |
+| `<ação>`      | Método testado         |
+| `Should`      | Comportamento esperado |
+| `<resultado>` | Resultado esperado     |
+| `When`        | Condição               |
+| `<cenário>`   | Contexto específico    |
 
-✅ Exemplos Práticos
+✅ Exemplos
 
-| Método de Teste                                                  | Significado                                            |
-| ---------------------------------------------------------------- | ------------------------------------------------------ |
-| `findByIdShouldReturnProductWhenIdExists`                        | Deve retornar produto quando o ID existe               |
-| `findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist` | Deve lançar exceção quando ID não existe               |
-| `deleteShouldRemoveCategoryWhenIdExists`                         | Deve remover categoria quando ID existe                |
-| `deleteShouldThrowDatabaseExceptionWhenIntegrityViolationOccurs` | Deve lançar erro quando houver violação de integridade |
-| `insertShouldSaveProductSuccessfully`                            | Deve salvar produto corretamente                       |
-| `updateShouldUpdateCategoryWhenIdExists`                         | Deve atualizar categoria quando ID existe              |
+| Nome                                                             | Significado                  |
+| ---------------------------------------------------------------- | ---------------------------- |
+| `findByIdShouldReturnProductWhenIdExists`                        | Retorna produto se ID existe |
+| `deleteShouldThrowDatabaseExceptionWhenIntegrityViolationOccurs` | Lança exceção em violação    |
+| `updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist`   | Falha para ID inexistente    |
 
-🎯 Benefícios Estratégicos
+🎯 Benefícios
 
-| Benefício                | Impacto                        |
-| ------------------------ | ------------------------------ |
-| Clareza imediata         | Facilita leitura               |
-| Documentação viva        | O nome explica o comportamento |
-| Facilidade de manutenção | Reduz ambiguidade              |
-| Padronização             | Equipes seguem o mesmo modelo  |
-| Diagnóstico rápido       | Erros ficam autoexplicativos   |
+| Benefício          | Impacto         |
+| ------------------ | --------------- |
+| Clareza            | Fácil leitura   |
+| Documentação viva  | Autoexplicativo |
+| Padronização       | Consistência    |
+| Diagnóstico rápido | Erros claros    |
 
-🛠️ Boas Práticas
+❌ Nomes ruins
 
-Use verbos claros:
+| Exemplo      | Problema     |
+| ------------ | ------------ |
+| `test1`      | Genérico     |
+| `shouldWork` | Ambíguo      |
+| `testDelete` | Sem contexto |
 
-- find
-- insert
-- update
-- delete
-- search
+✅ Nomes profissionais
 
-Descreva resultado esperado:
-
-- Return
-- Throw
-- Save
-- Remove
-- Explicite cenário:
-  - WhenIdExists
-  - WhenIdDoesNotExist
-  - WhenIntegrityViolationOccurs
-
-| Nome ruim         | Problema            |
-| ----------------- | ------------------- |
-| `test1`           | Genérico            |
-| `shouldWork`      | Ambíguo             |
-| `validateProduct` | Pouco específico    |
-| `testDelete`      | Não explica cenário |
-
-| Ruim         | Bom                                                            |
-| ------------ | -------------------------------------------------------------- |
-| `testDelete` | `deleteShouldRemoveProductWhenIdExists`                        |
-| `testFind`   | `findByIdShouldReturnCategoryWhenIdExists`                     |
-| `updateTest` | `updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist` |
-
-[!TIP]
-
-> Se o nome do teste explica claramente o comportamento, cenário e resultado esperado, ele está bem escrito.
+| Ruim         | Bom                                        |
+| ------------ | ------------------------------------------ |
+| `testDelete` | `deleteShouldRemoveProductWhenIdExists`    |
+| `testFind`   | `findByIdShouldReturnCategoryWhenIdExists` |
+| `testUpdate` | `updateShouldThrowExceptionWhenIdDoesNotExist` |
 
 ---
+📌 Estrutura modular com @Nested
 
-## 📌 Organização AAA
+Benefícios:
 
-| Etapa   | Objetivo    |
-| ------- | ----------- |
-| Arrange | Preparação  |
-| Act     | Execução    |
-| Assert  | Verificação |
+Separação por contexto
+Organização
+Legibilidade
+Manutenção
 
-### Exemplo:
-
-```java
-// Arrange
-Mockito.when(repository.findById(id)).thenReturn(Optional.of(product));
-
-// Act
-ProductDetailsResponse result = service.findById(id);
-
-// Assert
-Assertions.assertNotNull(result);
-```
+📌 Factories e Fixtures
+Utilizadas:
+ProductFactory
+CategoryFactory
+Benefícios:
+Reuso
+Consistência
+Redução de duplicação
+Testes previsíveis
 
 ---
-
-## 📌 Estrutura Modular com `@Nested`
-
-### Benefícios:
-
-- Separação por contexto
-- Leitura facilitada
-- Manutenção superior
-- Organização enterprise
-
----
-
-## 📌 Uso de Fixtures e Factories
-
-### Aplicado com:
-
-- `ProductFactory`
-- `CategoryFactory`
-
-### Benefícios:
-
-- Redução de duplicação
-- Dados consistentes
-- Reuso
-- Cenários previsíveis
-
----
-
-# ⚙️ Estratégias Spring Boot Utilizadas
-
-| Annotation                                  | Finalidade        |
-| ------------------------------------------- | ----------------- |
-| `@DataJpaTest`                              | Persistência      |
-| `@WebMvcTest`                               | Camada web        |
-| `@ExtendWith(MockitoExtension.class)`       | Unitário          |
-| `@Import(ControllerExceptionHandler.class)` | Tratamento global |
-| `@Autowired MockMvc`                        | Simulação HTTP    |
-
----
-
-# 🎭 Mockito na Prática
-
-## Recursos utilizados:
-
-| Recurso               | Uso                        |
-| --------------------- | -------------------------- |
-| `@Mock`               | Dependências simuladas     |
-| `@InjectMocks`        | Classe testada             |
-| `@MockitoBean`        | Mock em contexto web       |
-| `when().thenReturn()` | Retornos controlados       |
-| `doThrow()`           | Exceções                   |
-| `doNothing()`         | Fluxos void                |
-| `verify()`            | Verificação comportamental |
-
----
-
-# 📂 Organização da Estrutura de Testes
-
-```txt
+📂 Estrutura do Projeto de Testes
 src/test/java
 ┣ factories
 ┣ repositories
 ┣ services
 ┣ web/controllers
-┗ integration (expansível)
+┗ integration
+
+---
+📊 Pirâmide de Testes
+
+```
+Funcionais
+Integração
+Unitários
 ```
 
----
+🧠 Conclusão — Evolução Profissional
 
-# 📊 Pirâmide de Testes Aplicada
+Ao concluir este capítulo, o projeto DSCatalog consolida competências fundamentais para desenvolvimento backend profissional:
 
-```txt
-        Funcionais
-       Integração
-      Unitários
-```
-
-### Interpretação:
-
-- Base forte em unitários
-- Integração para persistência
-- Web para contratos REST
-
----
-
-# 🧠 Conclusão — Aprendizado Consolidado
-
-Ao concluir este capítulo, o desenvolvimento do projeto DSCatalog proporcionou evolução técnica significativa nas seguintes competências:
-
-## 🚀 Competências desenvolvidas
-
-### Testes unitários
-
-- Isolamento de regras de negócio
-- Mocking avançado
-- Tradução de exceções
-- Verificação comportamental
-
-### Testes de integração
-
-- Persistência real
-- Validação JPA
-- Relacionamentos complexos
-- Integridade relacional
-
-### Testes web
-
-- Contratos REST
-- Status HTTP
-- JSON
-- Headers
-- Exception handling
-
-### Engenharia de software
-
-- TDD
-- SOLID
-- DIP
-- SRP
-- Arquitetura testável
-- Refatoração segura
-
----
-
-## 📌 Resultado profissional
+🚀 Competências adquiridas
+Técnicas
+JUnit 5
+Mockito
+MockMvc
+DataJpaTest
+SpringBootTest
+TDD
+SOLID
+Testes multicamadas
+Arquiteturais
+DIP
+SRP
+Desacoplamento
+Refatoração segura
+Sustentabilidade evolutiva
+Profissionais
+Qualidade enterprise
+Segurança contra regressão
+Código confiável
+Base para CI/CD
+Portfólio robusto
+📌 Resultado final
 
 O projeto deixa de ser apenas uma API CRUD e passa a representar:
 
-- Um sistema validado profissionalmente
-- Arquitetura preparada para evolução
-- Base confiável para CI/CD
-- Portfólio robusto para mercado backend Java
-- Demonstração prática de maturidade em qualidade de software
-
----
+Sistema validado profissionalmente
+Arquitetura sustentável
+Base confiável para crescimento
+Demonstração prática de maturidade em engenharia de software
 
 > [!SUCCESS]
-> Este capítulo consolidou não apenas conhecimento em testes, mas também uma mentalidade de engenharia profissional: construir software confiável, sustentável, desacoplado e preparado para crescimento contínuo.
+> Este capítulo consolida uma mentalidade de engenharia profissional: desenvolver software confiável, testável, sustentável e preparado para evolução contínua.
