@@ -105,9 +105,6 @@ class CategoryControllerTest {
     }
   }
 
-  // =========================
-  // READ
-  // =========================
   @Nested
   @DisplayName("GET /categories")
   class FindAllTests {

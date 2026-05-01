@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,7 +36,7 @@ import jakarta.persistence.EntityNotFoundException;
 // Nos testes unitários, mocko exceções técnicas da camada inferior para validar se a camada de serviço faz corretamente a tradução para exceções de negócio.
 @DisplayName("Tests for ProductService")
 @ExtendWith(MockitoExtension.class)
-public class ProductServiceTest {
+class ProductServiceTest {
 
   @InjectMocks
   private ProductService service;
@@ -53,7 +54,7 @@ public class ProductServiceTest {
   private PageImpl<Product> page;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     existingId = 1L;
     nonExistingId = 1000L;
     dependentId = 4L;
@@ -61,231 +62,238 @@ public class ProductServiceTest {
     page = new PageImpl<>(List.of(ProductFactory.createProduct()));
   }
 
-  @Test
-  @DisplayName("Delete should remove product when id exists")
-  void deleteShouldRemoveProductWhenIdExists() {
+  @Nested
+  @DisplayName("Delete Operations")
+  class DeleteOperations {
 
-    // Arrange
-    Product product = ProductFactory.createProduct();
-    product.setId(existingId);
+    @Test
+    @DisplayName("delete should remove product when id exists")
+    void deleteShouldRemoveProductWhenIdExists() {
 
-    Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
+      // Arrange
+      Product product = ProductFactory.createProduct();
+      product.setId(existingId);
 
-    // Act
-    Assertions.assertDoesNotThrow(() -> {
-      service.delete(existingId);
-    });
+      Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
 
-    // Assert (state)
-    // Não retorna pois o método delete é void.
+      // Act + Assert
+      Assertions.assertDoesNotThrow(() -> service.delete(existingId));
 
-    // Verify (behavior)
-    Mockito.verify(repository).findById(existingId);
-    Mockito.verify(repository).delete(product);
+      // Verify
+      Mockito.verify(repository).findById(existingId);
+      Mockito.verify(repository).delete(product);
+    }
+
+    @Test
+    @DisplayName("delete should throw ResourceNotFoundException when id does not exist")
+    void deleteShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+      // Arrange
+      Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+      // Act
+      ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class,
+          () -> service.delete(nonExistingId));
+
+      // Assert
+      Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+
+      // Verify
+      Mockito.verify(repository).findById(nonExistingId);
+      Mockito.verify(repository, Mockito.never()).delete(Mockito.any());
+    }
+
+    @Test
+    @DisplayName("delete should throw DatabaseException when integrity violation occurs")
+    void deleteShouldThrowDatabaseExceptionWhenDependentId() {
+
+      // Arrange
+      Product product = ProductFactory.createProduct();
+      product.setId(dependentId);
+
+      Mockito.when(repository.findById(dependentId)).thenReturn(Optional.of(product));
+
+      Mockito.doThrow(DataIntegrityViolationException.class).when(repository).delete(product);
+
+      // Act
+      DatabaseException exception = Assertions.assertThrows(DatabaseException.class, () -> service.delete(dependentId));
+
+      // Assert
+      Assertions.assertEquals("Integrity violation: cannot delete product with related entities",
+          exception.getMessage());
+
+      // Verify
+      Mockito.verify(repository).findById(dependentId);
+      Mockito.verify(repository).delete(product);
+    }
   }
 
-  @Test
-  @DisplayName("Should throw ResourceNotFoundException when id does not exist")
-  void deleteShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+  @Nested
+  @DisplayName("FindById Operations")
+  class FindByIdOperations {
 
-    // Arrange
-    Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
+    @Test
+    @DisplayName("findById should return product when id exists")
+    void findByIdShouldReturnProductWhenIdExists() {
 
-    // Act
-    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-      service.delete(nonExistingId);
-    });
+      // Arrange
+      Product product = ProductFactory.createProduct();
+      product.setId(existingId);
 
-    // Assert (state)
-    Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+      ProductDetailsResponse expectedResponse = Mockito.mock(ProductDetailsResponse.class);
 
-    // Verify (behavior)
-    Mockito.verify(repository).findById(nonExistingId);
-    Mockito.verify(repository, Mockito.never()).delete(Mockito.any());
+      Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
+      Mockito.when(productMapper.toDetailsResponse(product)).thenReturn(expectedResponse);
+
+      // Act
+      ProductDetailsResponse result = service.findById(existingId);
+
+      // Assert
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedResponse, result);
+
+      // Verify
+      Mockito.verify(repository).findById(existingId);
+      Mockito.verify(productMapper).toDetailsResponse(product);
+    }
+
+    @Test
+    @DisplayName("findById should throw ResourceNotFoundException when id does not exist")
+    void findByIdShouldThrowExceptionWhenIdDoesNotExist() {
+
+      // Arrange
+      Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+      // Act
+      ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class,
+          () -> service.findById(nonExistingId));
+
+      // Assert
+      Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+
+      // Verify
+      Mockito.verify(repository).findById(nonExistingId);
+      Mockito.verify(productMapper, Mockito.never()).toDetailsResponse(Mockito.any());
+    }
   }
 
-  @Test
-  @DisplayName("Should throw DatabaseException when integrity violation occurs")
-  void deleteShouldThrowDatabaseExceptionWhenDependentId() {
+  @Nested
+  @DisplayName("FindAllPaged Operations")
+  class FindAllPagedOperations {
 
-    // Arrange
-    Product product = ProductFactory.createProduct();
-    product.setId(dependentId);
+    @Test
+    @DisplayName("findAllPaged should return paged products")
+    void findAllPagedShouldReturnPage() {
 
-    Mockito.when(repository.findById(dependentId)).thenReturn(Optional.of(product));
+      // Arrange
+      Page<ProductResponse> expectedPage = new PageImpl<>(List.of());
 
-    Mockito.doThrow(DataIntegrityViolationException.class).when(repository).delete(product);
+      Mockito.when(repository.findAll(Mockito.any(Pageable.class))).thenReturn(page);
+      Mockito.when(productMapper.toResponsePage(page)).thenReturn(expectedPage);
 
-    // Act
-    DatabaseException exception = Assertions.assertThrows(DatabaseException.class, () -> {
-      service.delete(dependentId);
-    });
+      // Act
+      Page<ProductResponse> result = service.findAllPaged(pageable);
 
-    // Assert (state)
-    Assertions.assertEquals("Integrity violation: cannot delete product with related entities",
-        exception.getMessage());
+      // Assert
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedPage, result);
 
-    // Verify (behavior)
-    Mockito.verify(repository).findById(dependentId);
-    Mockito.verify(repository).delete(product);
+      // Verify
+      Mockito.verify(repository).findAll(pageable);
+      Mockito.verify(productMapper).toResponsePage(page);
+    }
   }
 
-  @Test
-  @DisplayName("Should return product when id exists")
-  void findByIdShouldReturnProductWhenIdExists() {
+  @Nested
+  @DisplayName("Insert Operations")
+  class InsertOperations {
 
-    // Arrange
-    Product product = ProductFactory.createProduct();
-    product.setId(existingId);
+    @Test
+    @DisplayName("insert should save product successfully")
+    void insertShouldSaveProduct() {
 
-    ProductDetailsResponse productDetails = Mockito.mock(ProductDetailsResponse.class);
+      // Arrange
+      ProductCreateRequest request = Mockito.mock(ProductCreateRequest.class);
 
-    Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
+      Product product = ProductFactory.createProduct();
+      product.setId(existingId);
 
-    Mockito.when(productMapper.toDetailsResponse(product)).thenReturn(productDetails);
+      ProductResponse expectedResponse = Mockito.mock(ProductResponse.class);
 
-    // Act
-    ProductDetailsResponse response = service.findById(existingId);
+      Mockito.when(productMapper.toEntity(request)).thenReturn(product);
+      Mockito.when(request.categoryIds()).thenReturn(List.of());
+      Mockito.when(repository.save(product)).thenReturn(product);
+      Mockito.when(productMapper.toResponse(product)).thenReturn(expectedResponse);
 
-    // Assert (state)
-    Assertions.assertNotNull(response);
-    Assertions.assertEquals(productDetails, response);
+      // Act
+      ProductResponse result = service.insert(request);
 
-    // Verify (behavior)
-    Mockito.verify(repository).findById(existingId);
-    Mockito.verify(productMapper).toDetailsResponse(product);
+      // Assert
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedResponse, result);
+
+      // Verify
+      Mockito.verify(productMapper).toEntity(request);
+      Mockito.verify(repository).save(product);
+      Mockito.verify(productMapper).toResponse(product);
+    }
   }
 
-  @Test
-  @DisplayName("Should throw ResourceNotFoundException when finding by non existing id")
-  void findByIdShouldThrowExceptionWhenIdDoesNotExist() {
+  @Nested
+  @DisplayName("Update Operations")
+  class UpdateOperations {
 
-    // Arrange
-    Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
+    @Test
+    @DisplayName("update should update product when id exists")
+    void updateShouldUpdateProductWhenIdExists() {
 
-    // Act
-    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-      service.findById(nonExistingId);
-    });
+      // Arrange
+      Product product = ProductFactory.createProduct();
+      product.setId(existingId);
 
-    // Assert (state)
-    Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
+      ProductUpdateRequest request = Mockito.mock(ProductUpdateRequest.class);
 
-    // Verify (behavior)
-    Mockito.verify(repository).findById(nonExistingId);
-    Mockito.verify(productMapper, Mockito.never()).toDetailsResponse(Mockito.any());
-  }
+      ProductResponse expectedResponse = Mockito.mock(ProductResponse.class);
 
-  @Test
-  @DisplayName("Should return paged products")
-  void findAllPagedShouldReturnPage() {
+      Mockito.when(request.categoryIds()).thenReturn(null);
+      Mockito.when(repository.getReferenceById(existingId)).thenReturn(product);
+      Mockito.when(repository.save(product)).thenReturn(product);
+      Mockito.when(productMapper.toResponse(product)).thenReturn(expectedResponse);
 
-    // Arrange
-    Page<ProductResponse> expectedPage = new PageImpl<>(List.of());
+      // Act
+      ProductResponse result = service.update(existingId, request);
 
-    Mockito.when(repository.findAll(Mockito.any(Pageable.class))).thenReturn(page);
+      // Assert
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedResponse, result);
 
-    Mockito.when(productMapper.toResponsePage(page)).thenReturn(expectedPage);
+      // Verify
+      Mockito.verify(repository).getReferenceById(existingId);
+      Mockito.verify(productMapper).updateEntity(request, product);
+      Mockito.verify(repository).save(product);
+      Mockito.verify(productMapper).toResponse(product);
+    }
 
-    // Act
-    Page<ProductResponse> result = service.findAllPaged(pageable);
+    @Test
+    @DisplayName("update should throw ResourceNotFoundException when id does not exist")
+    void updateShouldThrowExceptionWhenIdDoesNotExist() {
 
-    // Assert (state)
-    Assertions.assertNotNull(result);
-    Assertions.assertEquals(expectedPage, result);
+      // Arrange
+      ProductUpdateRequest request = Mockito.mock(ProductUpdateRequest.class);
 
-    // Verify (behavior)
-    Mockito.verify(repository).findAll(pageable);
-    Mockito.verify(productMapper).toResponsePage(page);
-  }
+      Mockito.when(repository.getReferenceById(nonExistingId)).thenThrow(EntityNotFoundException.class);
 
-  @Test
-  @DisplayName("Should insert product")
-  void insertShouldSaveProduct() {
+      // Act
+      ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class,
+          () -> service.update(nonExistingId, request));
 
-    // Arrange
-    ProductCreateRequest request = Mockito.mock(ProductCreateRequest.class);
+      // Assert
+      Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
 
-    Product product = ProductFactory.createProduct();
-    product.setId(existingId);
-
-    ProductResponse expectedResponse = Mockito.mock(ProductResponse.class);
-
-    Mockito.when(productMapper.toEntity(request)).thenReturn(product);
-
-    Mockito.when(request.categoryIds()).thenReturn(List.of());
-
-    Mockito.when(repository.save(product)).thenReturn(product);
-
-    Mockito.when(productMapper.toResponse(product)).thenReturn(expectedResponse);
-
-    // Act
-    ProductResponse result = service.insert(request);
-
-    // Assert (state)
-    Assertions.assertNotNull(result);
-    Assertions.assertEquals(expectedResponse, result);
-
-    // Verify (behavior)
-    Mockito.verify(productMapper).toEntity(request);
-    Mockito.verify(repository).save(product);
-    Mockito.verify(productMapper).toResponse(product);
-  }
-
-  @Test
-  @DisplayName("Should update product when id exists")
-  void updateShouldUpdateProductWhenIdExists() {
-
-    // Arrange
-    Product product = ProductFactory.createProduct();
-    product.setId(existingId);
-
-    ProductUpdateRequest dto = Mockito.mock(ProductUpdateRequest.class);
-
-    ProductResponse expectedResponse = Mockito.mock(ProductResponse.class);
-
-    Mockito.when(dto.categoryIds()).thenReturn(null);
-
-    Mockito.when(repository.getReferenceById(existingId)).thenReturn(product);
-
-    Mockito.when(repository.save(product)).thenReturn(product);
-
-    Mockito.when(productMapper.toResponse(product)).thenReturn(expectedResponse);
-
-    // Act
-    ProductResponse result = service.update(existingId, dto);
-
-    // Assert (state)
-    Assertions.assertNotNull(result);
-    Assertions.assertEquals(expectedResponse, result);
-
-    // Verify (behavior)
-    Mockito.verify(repository).getReferenceById(existingId);
-    Mockito.verify(productMapper).updateEntity(dto, product);
-    Mockito.verify(repository).save(product);
-    Mockito.verify(productMapper).toResponse(product);
-  }
-
-  @Test
-  @DisplayName("Should throw ResourceNotFoundException when updating non existing id")
-  void updateShouldThrowExceptionWhenIdDoesNotExist() {
-
-    // Arrange
-    ProductUpdateRequest dto = Mockito.mock(ProductUpdateRequest.class);
-
-    Mockito.when(repository.getReferenceById(nonExistingId)).thenThrow(EntityNotFoundException.class);
-
-    // Act
-    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-      service.update(nonExistingId, dto);
-    });
-
-    // Assert (state)
-    Assertions.assertEquals("Entity not found id: " + nonExistingId, exception.getMessage());
-
-    // Verify (behavior)
-    Mockito.verify(repository).getReferenceById(nonExistingId);
-    Mockito.verify(productMapper, Mockito.never()).updateEntity(Mockito.any(), Mockito.any());
-    Mockito.verify(repository, Mockito.never()).save(Mockito.any());
+      // Verify
+      Mockito.verify(repository).getReferenceById(nonExistingId);
+      Mockito.verify(productMapper, Mockito.never()).updateEntity(Mockito.any(), Mockito.any());
+      Mockito.verify(repository, Mockito.never()).save(Mockito.any());
+    }
   }
 }
