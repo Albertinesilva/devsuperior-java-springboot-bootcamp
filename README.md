@@ -1,12 +1,12 @@
-# 🧪 Capítulo 02 — Testes Automatizados no Back-End com Spring Boot
+# 🧪 Capítulo 02—Testes Automatizados no Back-End com Spring Boot
 
-<p align="justify">
+<p align="text-align: justify;">
 <em>Este capítulo apresenta a construção de uma estratégia profissional de testes automatizados aplicada ao projeto <strong>DSCatalog</strong>, utilizando <code>Java</code>, <code>Spring Boot 3</code>, <code>JUnit 5</code>, <code>Mockito</code>, <code>MockMvc</code> e princípios sólidos de engenharia de software para garantir qualidade, previsibilidade, segurança evolutiva e manutenção sustentável.</em>
 </p>
 
 ---
 
-# 📚 Contexto do Projeto
+## 📚 Contexto do Projeto
 
 Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evolui para um cenário robusto de validação automatizada, incorporando:
 
@@ -23,9 +23,9 @@ Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evo
 
 ---
 
-# 🎯 Objetivos do Capítulo
+## 🎯 Objetivos do Capítulo
 
-## 1. Dominar fundamentos de testes automatizados
+### 1. Dominar fundamentos de testes automatizados
 
 - Compreender testes unitários, integração e funcionais
 - Aplicar isolamento, previsibilidade e independência
@@ -35,7 +35,7 @@ Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evo
 
 ---
 
-## 2. Implementar testes robustos com JUnit 5
+### 2. Implementar testes robustos com JUnit 5
 
 ### 📋 Recursos principais
 
@@ -50,7 +50,7 @@ Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evo
 
 ---
 
-### 🧩 Fixtures
+## 🧩 Fixtures
 
 Fixtures são estruturas reutilizáveis que evitam repetição e aumentam previsibilidade.
 
@@ -84,7 +84,7 @@ Fixtures são estruturas reutilizáveis que evitam repetição e aumentam previs
 
 ---
 
-## 3. Aplicar estratégias reais no ecossistema Spring Boot
+### 3. Aplicar estratégias reais no ecossistema Spring Boot
 
 ### ⚙️ Principais anotações
 
@@ -99,7 +99,7 @@ Fixtures são estruturas reutilizáveis que evitam repetição e aumentam previs
 
 ---
 
-### 🌐 MockMvc
+## 🌐 MockMvc
 
 Permite validar:
 
@@ -119,7 +119,7 @@ Permite validar:
 
 ---
 
-## 4. Simular dependências com Mockito
+### 4. Simular dependências com Mockito
 
 ### 🎭 Recursos utilizados
 
@@ -157,7 +157,7 @@ Permite validar:
 
 ---
 
-## 5. Aplicar TDD e SOLID
+### 5. Aplicar TDD e SOLID
 
 - Desenvolvimento orientado por testes
 - Código desacoplado
@@ -167,9 +167,9 @@ Permite validar:
 
 ---
 
-# 🧠 Fundamentos de Testes Automatizados
+### 🧠 Fundamentos de Testes Automatizados
 
-## 📌 Tipos de testes
+### 📌 Tipos de testes
 
 | Tipo | Objetivo | Escopo | Dependências |
 |-----|----------|--------|--------------|
@@ -179,7 +179,7 @@ Permite validar:
 
 ---
 
-# 🧪 Testes Unitários no Projeto
+## 🧪 Testes Unitários no Projeto
 
 ### Aplicados em:
 
@@ -205,7 +205,7 @@ Permite validar:
 
 ---
 
-# 🔗 Testes de Repository
+## 🔗 Testes de Repository
 
 ### Validam:
 
@@ -222,11 +222,13 @@ Permite validar:
 ```java
 @DataJpaTest
 public class ProductRepositoryTest {
+
     @Autowired
     private ProductRepository repository;
 
     @Test
     public void testInsert() {
+
         // Arrange
         Product product = new Product(null, "Test Product", "Description", 10.0, "image.jpg");
 
@@ -256,23 +258,23 @@ public class ProductRepositoryTest {
 
 ---
 
-# 🌐 Testes Web (Controllers)
+## 🌐 Testes Web (Controllers)
 
-## Ferramentas:
+### Ferramentas:
 
 - `@WebMvcTest`
 - `MockMvc`
 - `ObjectMapper`
 - `ControllerExceptionHandler`
 
-## Cobertura:
+### Cobertura:
 
 - POST
 - GET
 - PATCH
 - DELETE
 
-## Validações:
+### Validações:
 
 - Status HTTP
 - JSON
@@ -282,7 +284,7 @@ public class ProductRepositoryTest {
 
 ---
 
-# 📈 Benefícios Estratégicos
+## 📈 Benefícios Estratégicos
 
 | Benefício | Impacto |
 |----------|---------|
@@ -297,9 +299,9 @@ public class ProductRepositoryTest {
 
 ---
 
-# 🔄 TDD — Test Driven Development
+## 🔄 TDD — Test Driven Development
 
-## 📖 Conceito
+### 📖 Conceito
 
 Segundo Kent Beck:
 
@@ -311,7 +313,7 @@ Segundo Kent Beck:
 
 ---
 
-# 🚀 Benefícios
+## 🚀 Benefícios
 
 - Requisitos claros
 - Menor regressão
@@ -321,9 +323,9 @@ Segundo Kent Beck:
 
 ---
 
-# 🏛️ SOLID Aplicado à Testabilidade
+## 🏛️ SOLID Aplicado à Testabilidade
 
-## 📌 Visão Geral
+### 📌 Visão Geral
 
 | Princípio | Benefício |
 |----------|-----------|
@@ -343,38 +345,42 @@ Segundo Kent Beck:
 ProductService depende de ProductRepositoryImpl
 ```
 
-✅ Correto:
+### ✅ Correto:
 
 ```java
 ProductService depende de ProductRepository (interface)
 ```
 
-Resultado:
+### Resultado:
 
 ```java
 @Mock
 private ProductRepository repository;
 ```
 
-Benefícios:
+### Benefícios:
 - Menor acoplamento
 - Isolamento
 - Facilidade de testes
 - Melhor manutenção
 
 ---
-🧩 SRP — Exemplo
+### 🧩 SRP — Exemplo
+
 | Classe           | Responsabilidade     |
 | ---------------- | -------------------- |
 | `ProductService` | Regras de negócio    |
 | `ProductMapper`  | Conversão DTO/Entity |
 
->[!TIP]
+> [!TIP]
 > SOLID melhora diretamente velocidade, confiabilidade e manutenção dos testes.
 
-🧱 Boas Práticas Aplicadas
-📌 Nomenclatura Profissional de Testes
-Estrutura:
+---
+## 🧱 Boas Práticas Aplicadas
+
+### 📌 Nomenclatura Profissional de Testes
+
+### Estrutura:
 
 ```java
 <ação>Should<resultado>When<cenário>
@@ -388,7 +394,7 @@ Estrutura:
 | `When`        | Condição               |
 | `<cenário>`   | Contexto específico    |
 
-✅ Exemplos
+### ✅ Exemplos
 
 | Nome                                                             | Significado                  |
 | ---------------------------------------------------------------- | ---------------------------- |
@@ -396,7 +402,8 @@ Estrutura:
 | `deleteShouldThrowDatabaseExceptionWhenIntegrityViolationOccurs` | Lança exceção em violação    |
 | `updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist`   | Falha para ID inexistente    |
 
-🎯 Benefícios
+---
+## 🎯 Benefícios
 
 | Benefício          | Impacto         |
 | ------------------ | --------------- |
@@ -405,7 +412,7 @@ Estrutura:
 | Padronização       | Consistência    |
 | Diagnóstico rápido | Erros claros    |
 
-❌ Nomes ruins
+### ❌ Nomes ruins
 
 | Exemplo      | Problema     |
 | ------------ | ------------ |
@@ -413,7 +420,7 @@ Estrutura:
 | `shouldWork` | Ambíguo      |
 | `testDelete` | Sem contexto |
 
-✅ Nomes profissionais
+### ✅ Nomes profissionais
 
 | Ruim         | Bom                                        |
 | ------------ | ------------------------------------------ |
@@ -422,36 +429,43 @@ Estrutura:
 | `testUpdate` | `updateShouldThrowExceptionWhenIdDoesNotExist` |
 
 ---
-📌 Estrutura modular com @Nested
+## 📌 Estrutura modular com @Nested
 
 Benefícios:
 
-Separação por contexto
-Organização
-Legibilidade
-Manutenção
-
-📌 Factories e Fixtures
-Utilizadas:
-ProductFactory
-CategoryFactory
-Benefícios:
-Reuso
-Consistência
-Redução de duplicação
-Testes previsíveis
+- Separação por contexto
+- Organização
+- Legibilidade
+- Manutenção
 
 ---
-📂 Estrutura do Projeto de Testes
-src/test/java
-┣ factories
+## 📌 Factories e Fixtures
+
+Utilizadas:
+- ProductFactory
+- CategoryFactory
+- Benefícios:
+- Reuso
+- Consistência
+- Redução de duplicação
+- Testes previsíveis
+
+---
+## 📂 Estrutura do Projeto de Testes
+
+```text
+test/java/com/albertsilva/dev/dscatalog
+┣ entities
+┣ factory
+┣ integrations
 ┣ repositories
 ┣ services
-┣ web/controllers
-┗ integration
+┣ web
+┗ DscatalogApplicationTests.java
+```
 
 ---
-📊 Pirâmide de Testes
+## 📊 Pirâmide de Testes
 
 ```
 Funcionais
@@ -459,40 +473,53 @@ Integração
 Unitários
 ```
 
-🧠 Conclusão — Evolução Profissional
+---
+## 🧠 Conclusão — Evolução Profissional
 
 Ao concluir este capítulo, o projeto DSCatalog consolida competências fundamentais para desenvolvimento backend profissional:
 
-🚀 Competências adquiridas
-Técnicas
-JUnit 5
-Mockito
-MockMvc
-DataJpaTest
-SpringBootTest
-TDD
-SOLID
-Testes multicamadas
-Arquiteturais
-DIP
-SRP
-Desacoplamento
-Refatoração segura
-Sustentabilidade evolutiva
-Profissionais
-Qualidade enterprise
-Segurança contra regressão
-Código confiável
-Base para CI/CD
-Portfólio robusto
-📌 Resultado final
+### 🚀 Competências adquiridas
+- Técnicas
+- JUnit 5
+- Mockito
+- MockMvc
+- DataJpaTest
+- SpringBootTest
+- TDD
+- SOLID
+- Testes multicamadas
+- Arquiteturais
+- DIP
+- SRP
+- Desacoplamento
+- Refatoração segura
+- Sustentabilidade evolutiva
+- Profissionais
+- Qualidade enterprise
+- Segurança contra regressão
+- Código confiável
+- Base para CI/CD
+
+## 📌 Resultado:
 
 O projeto deixa de ser apenas uma API CRUD e passa a representar:
 
-Sistema validado profissionalmente
-Arquitetura sustentável
-Base confiável para crescimento
-Demonstração prática de maturidade em engenharia de software
+- Sistema validado profissionalmente
+- Arquitetura sustentável
+- Base confiável para crescimento
+- Demonstração prática de maturidade em engenharia de software
 
 > [!SUCCESS]
 > Este capítulo consolida uma mentalidade de engenharia profissional: desenvolver software confiável, testável, sustentável e preparado para evolução contínua.
+
+## 👨‍💻 Autor
+
+**Albert Silva de Jesus**  
+Desenvolvedor Backend Java | Spring Boot
+
+---
+
+### 📎 Contato
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-%230077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/albert-backend-java-spring-boot/)
+[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:albertinesilva.17@gmail.com?subject=Contato%20sobre%20o%20projeto%20CAD-MOTOTAXISTA)
