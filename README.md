@@ -1,7 +1,9 @@
 # 🧪 Capítulo 02—Testes Automatizados no Back-End com Spring Boot
 
 <p align="text-align: justify;">
-<em>Este capítulo apresenta a construção de uma estratégia profissional de testes automatizados aplicada ao projeto <strong>DSCatalog</strong>, utilizando <code>Java</code>, <code>Spring Boot 3</code>, <code>JUnit 5</code>, <code>Mockito</code>, <code>MockMvc</code> e princípios sólidos de engenharia de software para garantir qualidade, previsibilidade, segurança evolutiva e manutenção sustentável.</em>
+<em>Este capítulo apresenta a construção de uma estratégia profissional de testes automatizados aplicada ao projeto <strong>DSCatalog</strong>, utilizando <code>Java</code>, <code>Spring Boot 3</code>, <code>JUnit 5</code>, <code>Mockito</code>, <code>MockMvc</code> e princípios sólidos de engenharia de software para garantir qualidade, previsibilidade, segurança evolutiva e manutenção sustentável.
+
+Dentro desse contexto, teste de unidade é o processo de verificar o funcionamento de um módulo de software de forma isolada, validando se ele atende às suas especificações. A partir desse fundamento, o capítulo evolui para abordagens mais amplas de validação, contemplando testes de integração, persistência e camada web, formando uma base robusta de qualidade para aplicações back-end profissionais.</em>
 </p>
 
 ---
@@ -23,7 +25,9 @@ Após a implementação da arquitetura em camadas no Capítulo 01, o projeto evo
 
 ---
 
-## 🎯 Objetivos do Capítulo
+## 🎯 Objetivos do Capítulo:
+
+Este capítulo tem como objetivo garantir que cada módulo funcione corretamente de forma independente, contribuindo para a qualidade geral do software.
 
 ### 1. Dominar fundamentos de testes automatizados
 
@@ -409,7 +413,15 @@ private ProductRepository repository;
 
 ---
 
-## 🎯 Benefícios
+## 🎯 Benefícios dos Testes Automatizados
+
+- Melhora a qualidade do software: identifica e corrige falhas precocemente.
+- Facilita o desenvolvimento: permite evoluir o código com segurança.
+- Reduz custos: falhas corrigidas cedo custam menos.
+- Aumenta a confiabilidade: garante funcionamento esperado.
+- Melhora a documentação do código: testes explicam comportamento e propósito.
+
+### 🎯 Benefícios da Nomenclatura Profissional
 
 | Benefício          | Impacto         |
 | ------------------ | --------------- |
