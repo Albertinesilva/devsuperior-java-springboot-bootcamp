@@ -474,32 +474,30 @@ Unitários
 ```
 
 ---
+### 🏛️ Princípios Arquiteturais Aplicados
+
+| Princípio | Nome Completo | Conceito | Aplicação no Projeto | Benefício |
+|----------|-------------------------------|---------|----------------------|-----------|
+| **SRP** | Single Responsibility Principle (Princípio da Responsabilidade Única) | Cada classe deve ter apenas uma única responsabilidade | `ProductService` cuida das regras de negócio, enquanto `ProductMapper` realiza apenas conversões DTO ↔ Entity | Código mais organizado, modular e fácil de testar |
+| **DIP** | Dependency Inversion Principle (Princípio da Inversão de Dependência) | Componentes devem depender de abstrações (interfaces), não de implementações concretas | `ProductService` depende de `ProductRepository` (interface), permitindo uso de mocks em testes | Menor acoplamento, maior flexibilidade e testabilidade |
+| **Desacoplamento** | Separação entre componentes | Reduz dependências rígidas entre camadas | Services, repositories e controllers possuem responsabilidades bem definidas | Facilita manutenção, evolução e refatoração |
+| **Refatoração Segura** | Evolução protegida por testes | Melhorias estruturais sem quebrar funcionalidades | Testes automatizados garantem segurança durante mudanças | Sustentabilidade de longo prazo |
+| **Sustentabilidade Evolutiva** | Capacidade de expansão contínua | Arquitetura preparada para novas features | Base robusta para crescimento do sistema | Escalabilidade profissional |
+
+---
 ## 🧠 Conclusão — Evolução Profissional
 
 Ao concluir este capítulo, o projeto DSCatalog consolida competências fundamentais para desenvolvimento backend profissional:
 
 ### 🚀 Competências adquiridas
-- Técnicas
-- JUnit 5
-- Mockito
-- MockMvc
-- DataJpaTest
-- SpringBootTest
-- TDD
-- SOLID
-- Testes multicamadas
-- Arquiteturais
-- DIP
-- SRP
-- Desacoplamento
-- Refatoração segura
-- Sustentabilidade evolutiva
-- Profissionais
-- Qualidade enterprise
-- Segurança contra regressão
-- Código confiável
-- Base para CI/CD
 
+| Categoria | Competências Desenvolvidas | Impacto Profissional |
+|----------|-----------------------------|----------------------|
+| **Técnicas** | `JUnit 5`, `Mockito`, `MockMvc`, `@DataJpaTest`, `@SpringBootTest`, `TDD`, `SOLID`, testes multicamadas | Domínio completo de estratégias modernas de validação backend |
+| **Arquiteturais** | `DIP`, `SRP`, desacoplamento, refatoração segura, sustentabilidade evolutiva | Construção de sistemas escaláveis, testáveis e preparados para manutenção |
+| **Profissionais** | Qualidade enterprise, segurança contra regressão, confiabilidade sistêmica, base para CI/CD | Preparação sólida para projetos corporativos e mercado profissional |
+
+---
 ## 📌 Resultado:
 
 O projeto deixa de ser apenas uma API CRUD e passa a representar:
