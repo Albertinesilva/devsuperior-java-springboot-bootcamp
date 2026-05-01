@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,9 +32,9 @@ import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundExcepti
 
 import jakarta.persistence.EntityNotFoundException;
 
-@DisplayName("Tests for CategoryService")
+@DisplayName("CategoryService Unit Tests")
 @ExtendWith(MockitoExtension.class)
-public class CategoryServiceTest {
+class CategoryServiceTest {
 
   @InjectMocks
   private CategoryService service;
@@ -48,232 +49,210 @@ public class CategoryServiceTest {
   private PageImpl<Category> page;
 
   @BeforeEach
-  void setUp() throws Exception {
-
+  void setUp() {
     pageable = PageRequest.of(0, 10);
     page = new PageImpl<>(List.of(CategoryFactory.createCategory()));
   }
 
-  @Test
-  @DisplayName("Delete should remove category when id exists")
-  void deleteShouldRemoveCategoryWhenIdExists() {
+  @Nested
+  @DisplayName("Insert Operations")
+  class InsertOperations {
 
-    // Arrange
-    Category category = CategoryFactory.createCategory();
-    category.setId(EXISTING_ID);
+    @Test
+    @DisplayName("insert should save category successfully")
+    void insertShouldSaveCategorySuccessfully() {
 
-    Mockito.when(repository.findById(EXISTING_ID)).thenReturn(Optional.of(category));
+      CategoryCreateRequest request = Mockito.mock(CategoryCreateRequest.class);
 
-    // Act
-    Assertions.assertDoesNotThrow(() -> {
-      service.delete(EXISTING_ID);
-    });
+      Category category = CategoryFactory.createCategory();
+      category.setId(EXISTING_ID);
 
-    // Assert (state)
-    // Método void → valida ausência de exceção.
+      CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
 
-    // Verify (behavior)
-    Mockito.verify(repository).findById(EXISTING_ID);
-    Mockito.verify(repository).delete(category);
+      Mockito.when(categoryMapper.toEntity(request)).thenReturn(category);
+      Mockito.when(repository.save(category)).thenReturn(category);
+      Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
+
+      CategoryResponse result = service.insert(request);
+
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedResponse, result);
+
+      Mockito.verify(categoryMapper).toEntity(request);
+      Mockito.verify(repository).save(category);
+      Mockito.verify(categoryMapper).toResponse(category);
+    }
   }
 
-  @Test
-  @DisplayName("Should throw ResourceNotFoundException when deleting non existing id")
-  void deleteShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+  @Nested
+  @DisplayName("FindById Operations")
+  class FindByIdOperations {
 
-    // Arrange
-    Mockito.when(repository.findById(NON_EXISTING_ID)).thenReturn(Optional.empty());
+    @Test
+    @DisplayName("findById should return category when id exists")
+    void findByIdShouldReturnCategoryWhenIdExists() {
 
-    // Act
-    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-      service.delete(NON_EXISTING_ID);
-    });
+      Category category = CategoryFactory.createCategory();
+      category.setId(EXISTING_ID);
 
-    // Assert (state)
-    Assertions.assertEquals("Entity not found id: " + NON_EXISTING_ID, exception.getMessage());
+      CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
 
-    // Verify (behavior)
-    Mockito.verify(repository).findById(NON_EXISTING_ID);
-    Mockito.verify(repository, Mockito.never()).delete(Mockito.any());
+      Mockito.when(repository.findById(EXISTING_ID)).thenReturn(Optional.of(category));
+      Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
+
+      CategoryResponse result = service.findById(EXISTING_ID);
+
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedResponse, result);
+
+      Mockito.verify(repository).findById(EXISTING_ID);
+      Mockito.verify(categoryMapper).toResponse(category);
+    }
+
+    @Test
+    @DisplayName("findById should throw ResourceNotFoundException when id does not exist")
+    void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+      Mockito.when(repository.findById(NON_EXISTING_ID)).thenReturn(Optional.empty());
+
+      ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class,
+          () -> service.findById(NON_EXISTING_ID));
+
+      Assertions.assertEquals("Entity not found id: " + NON_EXISTING_ID, exception.getMessage());
+
+      Mockito.verify(repository).findById(NON_EXISTING_ID);
+      Mockito.verify(categoryMapper, Mockito.never()).toResponse(Mockito.any());
+    }
   }
 
-  @Test
-  @DisplayName("Should return category when id exists")
-  void findByIdShouldReturnCategoryWhenIdExists() {
+  @Nested
+  @DisplayName("FindAllPaged Operations")
+  class FindAllPagedOperations {
 
-    // Arrange
-    Category category = CategoryFactory.createCategory();
-    category.setId(EXISTING_ID);
+    @Test
+    @DisplayName("findAllPaged should return paged categories")
+    void findAllPagedShouldReturnPagedCategories() {
 
-    CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
+      Page<CategoryResponse> expectedPage = new PageImpl<>(List.of());
 
-    Mockito.when(repository.findById(EXISTING_ID)).thenReturn(Optional.of(category));
+      Mockito.when(repository.findAll(pageable)).thenReturn(page);
+      Mockito.when(categoryMapper.toResponsePage(page)).thenReturn(expectedPage);
 
-    Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
+      Page<CategoryResponse> result = service.findAllPaged(pageable);
 
-    // Act
-    CategoryResponse result = service.findById(EXISTING_ID);
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedPage, result);
 
-    // Assert (state)
-    Assertions.assertNotNull(result);
-    Assertions.assertEquals(expectedResponse, result);
-
-    // Verify (behavior)
-    Mockito.verify(repository).findById(EXISTING_ID);
-    Mockito.verify(categoryMapper).toResponse(category);
+      Mockito.verify(repository).findAll(pageable);
+      Mockito.verify(categoryMapper).toResponsePage(page);
+    }
   }
 
-  @Test
-  @DisplayName("Should throw ResourceNotFoundException when finding non existing id")
-  void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+  @Nested
+  @DisplayName("Search Operations")
+  class SearchOperations {
 
-    // Arrange
-    Mockito.when(repository.findById(NON_EXISTING_ID)).thenReturn(Optional.empty());
+    @Test
+    @DisplayName("searchByName should return paged categories")
+    void searchByNameShouldReturnPagedCategories() {
 
-    // Act
-    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-      service.findById(NON_EXISTING_ID);
-    });
+      String name = "Books";
 
-    // Assert (state)
-    Assertions.assertEquals("Entity not found id: " + NON_EXISTING_ID, exception.getMessage());
+      Page<CategoryResponse> expectedPage = new PageImpl<>(List.of());
 
-    // Verify (behavior)
-    Mockito.verify(repository).findById(NON_EXISTING_ID);
-    Mockito.verify(categoryMapper, Mockito.never()).toResponse(Mockito.any());
+      Mockito.when(repository.findByNameContainingIgnoreCase(name, pageable)).thenReturn(page);
+      Mockito.when(categoryMapper.toResponsePage(page)).thenReturn(expectedPage);
+
+      Page<CategoryResponse> result = service.searchByName(name, pageable);
+
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedPage, result);
+
+      Mockito.verify(repository).findByNameContainingIgnoreCase(name, pageable);
+      Mockito.verify(categoryMapper).toResponsePage(page);
+    }
   }
 
-  @Test
-  @DisplayName("Should return paged categories")
-  void findAllPagedShouldReturnPage() {
+  @Nested
+  @DisplayName("Update Operations")
+  class UpdateOperations {
 
-    // Arrange
-    Page<CategoryResponse> expectedPage = new PageImpl<>(List.of());
+    @Test
+    @DisplayName("update should update category when id exists")
+    void updateShouldUpdateCategoryWhenIdExists() {
 
-    Mockito.when(repository.findAll(pageable)).thenReturn(page);
+      Category category = CategoryFactory.createCategory();
+      category.setId(EXISTING_ID);
 
-    Mockito.when(categoryMapper.toResponsePage(page)).thenReturn(expectedPage);
+      CategoryUpdateRequest request = Mockito.mock(CategoryUpdateRequest.class);
 
-    // Act
-    Page<CategoryResponse> result = service.findAllPaged(pageable);
+      CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
 
-    // Assert (state)
-    Assertions.assertNotNull(result);
-    Assertions.assertEquals(expectedPage, result);
+      Mockito.when(repository.getReferenceById(EXISTING_ID)).thenReturn(category);
+      Mockito.when(repository.save(category)).thenReturn(category);
+      Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
 
-    // Verify (behavior)
-    Mockito.verify(repository).findAll(pageable);
-    Mockito.verify(categoryMapper).toResponsePage(page);
+      CategoryResponse result = service.update(EXISTING_ID, request);
+
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(expectedResponse, result);
+
+      Mockito.verify(repository).getReferenceById(EXISTING_ID);
+      Mockito.verify(categoryMapper).updateEntity(request, category);
+      Mockito.verify(repository).save(category);
+      Mockito.verify(categoryMapper).toResponse(category);
+    }
+
+    @Test
+    @DisplayName("update should throw ResourceNotFoundException when id does not exist")
+    void updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+
+      CategoryUpdateRequest request = Mockito.mock(CategoryUpdateRequest.class);
+
+      Mockito.when(repository.getReferenceById(NON_EXISTING_ID)).thenThrow(EntityNotFoundException.class);
+
+      ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class,
+          () -> service.update(NON_EXISTING_ID, request));
+
+      Assertions.assertEquals("Entity not found id: " + NON_EXISTING_ID, exception.getMessage());
+
+      Mockito.verify(repository).getReferenceById(NON_EXISTING_ID);
+      Mockito.verify(repository, Mockito.never()).save(Mockito.any());
+    }
   }
 
-  @Test
-  @DisplayName("Should insert category")
-  void insertShouldSaveCategory() {
+  @Nested
+  @DisplayName("Delete Operations")
+  class DeleteOperations {
 
-    // Arrange
-    CategoryCreateRequest request = Mockito.mock(CategoryCreateRequest.class);
+    @Test
+    @DisplayName("delete should remove category when id exists")
+    void deleteShouldRemoveCategoryWhenIdExists() {
 
-    Category category = CategoryFactory.createCategory();
-    category.setId(EXISTING_ID);
+      Category category = CategoryFactory.createCategory();
+      category.setId(EXISTING_ID);
 
-    CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
+      Mockito.when(repository.findById(EXISTING_ID)).thenReturn(Optional.of(category));
 
-    Mockito.when(categoryMapper.toEntity(request)).thenReturn(category);
+      Assertions.assertDoesNotThrow(() -> service.delete(EXISTING_ID));
 
-    Mockito.when(repository.save(category)).thenReturn(category);
+      Mockito.verify(repository).findById(EXISTING_ID);
+      Mockito.verify(repository).delete(category);
+    }
 
-    Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
+    @Test
+    @DisplayName("delete should throw ResourceNotFoundException when id does not exist")
+    void deleteShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
 
-    // Act
-    CategoryResponse result = service.insert(request);
+      Mockito.when(repository.findById(NON_EXISTING_ID)).thenReturn(Optional.empty());
 
-    // Assert (state)
-    Assertions.assertNotNull(result);
-    Assertions.assertEquals(expectedResponse, result);
+      ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class,
+          () -> service.delete(NON_EXISTING_ID));
 
-    // Verify (behavior)
-    Mockito.verify(categoryMapper).toEntity(request);
-    Mockito.verify(repository).save(category);
-    Mockito.verify(categoryMapper).toResponse(category);
-  }
+      Assertions.assertEquals("Entity not found id: " + NON_EXISTING_ID, exception.getMessage());
 
-  @Test
-  @DisplayName("Should update category when id exists")
-  void updateShouldUpdateCategoryWhenIdExists() {
-
-    // Arrange
-    Category category = CategoryFactory.createCategory();
-    category.setId(EXISTING_ID);
-
-    CategoryUpdateRequest request = Mockito.mock(CategoryUpdateRequest.class);
-
-    CategoryResponse expectedResponse = Mockito.mock(CategoryResponse.class);
-
-    Mockito.when(repository.getReferenceById(EXISTING_ID)).thenReturn(category);
-
-    Mockito.when(repository.save(category)).thenReturn(category);
-
-    Mockito.when(categoryMapper.toResponse(category)).thenReturn(expectedResponse);
-
-    // Act
-    CategoryResponse result = service.update(EXISTING_ID, request);
-
-    // Assert (state)
-    Assertions.assertNotNull(result);
-    Assertions.assertEquals(expectedResponse, result);
-
-    // Verify (behavior)
-    Mockito.verify(repository).getReferenceById(EXISTING_ID);
-    Mockito.verify(categoryMapper).updateEntity(request, category);
-    Mockito.verify(repository).save(category);
-    Mockito.verify(categoryMapper).toResponse(category);
-  }
-
-  @Test
-  @DisplayName("Should throw ResourceNotFoundException when updating non existing id")
-  void updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
-
-    // Arrange
-    CategoryUpdateRequest request = Mockito.mock(CategoryUpdateRequest.class);
-
-    Mockito.when(repository.getReferenceById(NON_EXISTING_ID)).thenThrow(EntityNotFoundException.class);
-
-    // Act
-    ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-      service.update(NON_EXISTING_ID, request);
-    });
-
-    // Assert (state)
-    Assertions.assertEquals("Entity not found id: " + NON_EXISTING_ID, exception.getMessage());
-
-    // Verify (behavior)
-    Mockito.verify(repository).getReferenceById(NON_EXISTING_ID);
-    Mockito.verify(repository, Mockito.never()).save(Mockito.any());
-  }
-
-  @Test
-  @DisplayName("Should search categories by name")
-  void searchByNameShouldReturnPagedCategories() {
-
-    // Arrange
-    String name = "Books";
-
-    Page<CategoryResponse> expectedPage = new PageImpl<>(List.of());
-
-    Mockito.when(repository.findByNameContainingIgnoreCase(name, pageable)).thenReturn(page);
-
-    Mockito.when(categoryMapper.toResponsePage(page)).thenReturn(expectedPage);
-
-    // Act
-    Page<CategoryResponse> result = service.searchByName(name, pageable);
-
-    // Assert (state)
-    Assertions.assertNotNull(result);
-    Assertions.assertEquals(expectedPage, result);
-
-    // Verify (behavior)
-    Mockito.verify(repository).findByNameContainingIgnoreCase(name, pageable);
-
-    Mockito.verify(categoryMapper).toResponsePage(page);
+      Mockito.verify(repository).findById(NON_EXISTING_ID);
+      Mockito.verify(repository, Mockito.never()).delete(Mockito.any());
+    }
   }
 }
