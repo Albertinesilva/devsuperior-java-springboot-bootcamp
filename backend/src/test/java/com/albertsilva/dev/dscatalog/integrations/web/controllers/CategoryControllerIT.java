@@ -5,6 +5,8 @@ import static com.albertsilva.dev.dscatalog.factory.CategoryFactory.NON_EXISTING
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -21,6 +23,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.category.request.CategoryUpdateRequest;
 import com.albertsilva.dev.dscatalog.factory.CategoryFactory;
 import com.albertsilva.dev.dscatalog.repositories.CategoryRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -198,6 +201,46 @@ public class CategoryControllerIT {
         .andExpect(jsonPath("$.name").value(request.name()));
 
     assert categoryRepository.count() == initialCount + 1;
+  }
+
+  @Test
+  @DisplayName("PATCH /categories/{id} should update category when id exists")
+  public void updateShouldUpdateCategoryWhenIdExists() throws Exception {
+
+    // Arrange
+    CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
+    String jsonRequest = asJson(request);
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", EXISTING_ID)
+        .content(jsonRequest)
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(EXISTING_ID))
+        .andExpect(jsonPath("$.name").value(request.name()))
+        .andExpect(jsonPath("$.description").value(request.description()));
+  }
+
+  @Test
+  @DisplayName("PATCH /categories/{id} should return 404 when id does not exist")
+  public void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+
+    // Arrange
+    CategoryUpdateRequest request = CategoryFactory.createCategoryUpdateRequest();
+    String jsonRequest = asJson(request);
+
+    // Act
+    ResultActions resultActions = mockMvc.perform(patch(BASE_URL + "/{id}", NON_EXISTING_ID)
+        .content(jsonRequest)
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON));
+
+    // Assert
+    resultActions.andExpect(status().isNotFound());
   }
 
   private String asJson(Object object) throws Exception {
