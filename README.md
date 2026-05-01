@@ -1,9 +1,9 @@
 <h1 align="center">🧪 Capítulo 02 — Testes Automatizados no Back-End | Spring Boot</h1>
 
 <p align="text-align: justify;">
-<em>Este capítulo apresenta a construção de uma estratégia profissional de testes automatizados aplicada ao projeto <strong>DSCatalog</strong>, utilizando <code>Java</code>, <code>Spring Boot 3</code>, <code>JUnit 5</code>, <code>Mockito</code>, <code>MockMvc</code> e princípios sólidos de engenharia de software para garantir qualidade, previsibilidade, segurança evolutiva e manutenção sustentável.
+<em>Este capítulo apresenta a construção de uma estratégia profissional de testes automatizados aplicada ao projeto <strong>DSCatalog</strong>, utilizando <code>Java</code>, <code>Spring Boot 3</code>, <code>JUnit 5</code>, <code>Mockito</code>, <code>MockMvc</code> e princípios sólidos de engenharia de software para garantir qualidade, previsibilidade, segurança evolutiva e manutenção sustentável.</em>em>
 
-Dentro desse contexto, teste de unidade é o processo de verificar o funcionamento de um módulo de software de forma isolada, validando se ele atende às suas especificações. A partir desse fundamento, o capítulo evolui para abordagens mais amplas de validação, contemplando testes de integração, persistência e camada web, formando uma base robusta de qualidade para aplicações back-end profissionais.</em>
+<em>Dentro desse contexto, teste de unidade é o processo de verificar o funcionamento de um módulo de software de forma isolada, validando se ele atende às suas especificações. A partir desse fundamento, o capítulo evolui para abordagens mais amplas de validação, contemplando testes de integração, persistência e camada web, formando uma base robusta de qualidade para aplicações back-end profissionais.</em>
 </p>
 
 ---
