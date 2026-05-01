@@ -74,70 +74,6 @@ class CategoryRepositoryTest {
   }
 
   @Nested
-  @DisplayName("Delete Operations")
-  class DeleteOperations {
-
-    @Test
-    @DisplayName("should delete category when id exists")
-    void shouldDeleteCategoryWhenIdExists() {
-
-      // Arrange
-      Category category = categoryRepository.saveAndFlush(CategoryFactory.createCategory());
-      Long existingId = category.getId();
-
-      // Act
-      categoryRepository.deleteById(existingId);
-      categoryRepository.flush();
-
-      // Assert
-      assertThat(categoryRepository.existsById(existingId)).as("Category should be deleted").isFalse();
-    }
-
-    @Test
-    @DisplayName("should decrease repository count after delete")
-    void shouldDecreaseRepositoryCountAfterDelete() {
-
-      // Arrange
-      Category category = categoryRepository.saveAndFlush(CategoryFactory.createCategory());
-      long countBefore = categoryRepository.count();
-
-      // Act
-      categoryRepository.deleteById(category.getId());
-      categoryRepository.flush();
-
-      // Assert
-      assertThat(categoryRepository.count()).as("Repository count should decrease by one").isEqualTo(countBefore - 1);
-    }
-
-    @Test
-    @DisplayName("should delete category without deleting associated products")
-    void shouldDeleteCategoryWithoutDeletingAssociatedProducts() {
-
-      // Arrange
-      Category category = categoryRepository.saveAndFlush(CategoryFactory.createCategory());
-
-      Product product = ProductFactory.createProduct();
-      product.getCategories().add(category);
-      product = productRepository.saveAndFlush(product);
-
-      Long categoryId = category.getId();
-      Long productId = product.getId();
-
-      product.getCategories().remove(category);
-      productRepository.saveAndFlush(product);
-
-      // Act
-      categoryRepository.deleteById(categoryId);
-      categoryRepository.flush();
-
-      // Assert
-      assertThat(categoryRepository.existsById(categoryId)).as("Category should be deleted").isFalse();
-
-      assertThat(productRepository.existsById(productId)).as("Associated product should remain").isTrue();
-    }
-  }
-
-  @Nested
   @DisplayName("FindById Operations")
   class FindByIdOperations {
 
@@ -244,6 +180,70 @@ class CategoryRepositoryTest {
       Collections.sort(sortedNames);
 
       assertThat(names).as("Categories should be sorted alphabetically").isEqualTo(sortedNames);
+    }
+  }
+
+  @Nested
+  @DisplayName("Delete Operations")
+  class DeleteOperations {
+
+    @Test
+    @DisplayName("should delete category when id exists")
+    void shouldDeleteCategoryWhenIdExists() {
+
+      // Arrange
+      Category category = categoryRepository.saveAndFlush(CategoryFactory.createCategory());
+      Long existingId = category.getId();
+
+      // Act
+      categoryRepository.deleteById(existingId);
+      categoryRepository.flush();
+
+      // Assert
+      assertThat(categoryRepository.existsById(existingId)).as("Category should be deleted").isFalse();
+    }
+
+    @Test
+    @DisplayName("should decrease repository count after delete")
+    void shouldDecreaseRepositoryCountAfterDelete() {
+
+      // Arrange
+      Category category = categoryRepository.saveAndFlush(CategoryFactory.createCategory());
+      long countBefore = categoryRepository.count();
+
+      // Act
+      categoryRepository.deleteById(category.getId());
+      categoryRepository.flush();
+
+      // Assert
+      assertThat(categoryRepository.count()).as("Repository count should decrease by one").isEqualTo(countBefore - 1);
+    }
+
+    @Test
+    @DisplayName("should delete category without deleting associated products")
+    void shouldDeleteCategoryWithoutDeletingAssociatedProducts() {
+
+      // Arrange
+      Category category = categoryRepository.saveAndFlush(CategoryFactory.createCategory());
+
+      Product product = ProductFactory.createProduct();
+      product.getCategories().add(category);
+      product = productRepository.saveAndFlush(product);
+
+      Long categoryId = category.getId();
+      Long productId = product.getId();
+
+      product.getCategories().remove(category);
+      productRepository.saveAndFlush(product);
+
+      // Act
+      categoryRepository.deleteById(categoryId);
+      categoryRepository.flush();
+
+      // Assert
+      assertThat(categoryRepository.existsById(categoryId)).as("Category should be deleted").isFalse();
+
+      assertThat(productRepository.existsById(productId)).as("Associated product should remain").isTrue();
     }
   }
 }
