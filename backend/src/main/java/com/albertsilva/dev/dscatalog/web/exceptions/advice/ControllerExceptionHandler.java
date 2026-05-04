@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.albertsilva.dev.dscatalog.services.exceptions.DatabaseException;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
@@ -149,6 +150,48 @@ public class ControllerExceptionHandler {
     ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), ErrorType.CONFLIT.getMessage(),
         "Cannot delete resource because it has related entities",
         request.getRequestURI());
+    return ResponseEntity.status(status).body(err);
+  }
+
+  /**
+   * Trata exceções do tipo {@link NoResourceFoundException}.
+   *
+   * <p>
+   * Essa exceção ocorre quando um recurso estático solicitado não é encontrado
+   * pela aplicação, como por exemplo:
+   * </p>
+   * <ul>
+   * <li>Requisição automática para <code>/favicon.ico</code></li>
+   * <li>Arquivos CSS inexistentes</li>
+   * <li>Arquivos JavaScript ausentes</li>
+   * <li>Imagens ou assets não encontrados no diretório static/public</li>
+   * </ul>
+   *
+   * <p>
+   * Esse tratamento evita que recursos inexistentes sejam interpretados como
+   * erro interno da aplicação.
+   * </p>
+   *
+   * <p>
+   * Retorna um erro HTTP 404 (Not Found).
+   * </p>
+   *
+   * <p>
+   * <b>Observação:</b>
+   * </p>
+   * O log é registrado em nível WARN, pois se trata de uma condição esperada
+   * em alguns cenários de navegação.
+   *
+   * @param e       exceção lançada
+   * @param request requisição HTTP atual
+   * @return resposta padronizada contendo detalhes do erro
+   */
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<ProblemDetails> handleNoResourceFound(NoResourceFoundException e, HttpServletRequest request) {
+    HttpStatus status = HttpStatus.NOT_FOUND;
+    logger.debug("Static resource not found - path: {}", request.getRequestURI());
+    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), "Resource not found",
+        "Static resource not found", request.getRequestURI());
     return ResponseEntity.status(status).body(err);
   }
 
