@@ -106,6 +106,13 @@ public class Category implements Serializable {
   @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
   private Instant updatedAt;
 
+  /**
+   * Conjunto de produtos associados a esta categoria.
+   *
+   * <p>
+   * Representa a relação de muitos para muitos entre categorias e produtos.
+   * </p>
+   */
   @ManyToMany(mappedBy = "categories")
   private Set<Product> products = new HashSet<>();
 
