@@ -6,18 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.albertsilva.dev.dscatalog.dto.category.request.CategoryCreateRequest;
-import com.albertsilva.dev.dscatalog.dto.category.request.CategoryUpdateRequest;
-import com.albertsilva.dev.dscatalog.dto.category.response.CategoryResponse;
 import com.albertsilva.dev.dscatalog.dto.user.request.UserCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.user.request.UserUpdateRequest;
+import com.albertsilva.dev.dscatalog.dto.user.response.UserDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.user.response.UserResponse;
-import com.albertsilva.dev.dscatalog.services.CategoryService;
 import com.albertsilva.dev.dscatalog.services.UserService;
 import com.albertsilva.dev.dscatalog.web.exceptions.advice.ProblemDetails;
 
@@ -116,58 +112,44 @@ public class UserController {
   }
 
   /**
-   * Endpoint para listar usuários com paginação.
+   * Endpoint para listar usuários com paginação e filtro opcional por nome.
    *
    * <p>
-   * <b>Parâmetros suportados:</b>
+   * Permite filtrar por nome (parcial, case insensitive) e paginar resultados.
    * </p>
-   * <ul>
-   * <li>page → número da página</li>
-   * <li>linesPerPage → quantidade de registros por página</li>
-   * <li>orderBy → campo para ordenação</li>
-   * <li>direction → direção (ASC ou DESC)</li>
-   * </ul>
    *
    * <p>
-   * <b>Exemplo:</b>
+   * <b>Exemplo de requisição:</b>
    * </p>
-   * 
+   *
    * <pre>
-   * GET /api/v1/users?page=0&linesPerPage=10&direction=ASC&orderBy=firstName
+   * GET /api/v1/users?firstName=jo&page=0&size=10&sort=firstName,asc
    * </pre>
    *
+   * @param firstName filtro opcional por nome
+   * @param pageable  parâmetros de paginação e ordenação
    * @return lista paginada de usuários
    */
-  // @Operation(summary = "Lista todos os usuários com paginação", description =
-  // "Exige Bearer Token. Acesso restrito a ADMIN.", security =
-  // @SecurityRequirement(name = "security"), responses = {
-  // @ApiResponse(responseCode = "200", description = "Lista paginada de
-  // usuários", content = @Content(mediaType = "application/json", array =
-  // @ArraySchema(schema = @Schema(implementation = UserResponse.class)))),
-  // @ApiResponse(responseCode = "403", description = "Usuário sem permissão para
-  // acessar este recurso", content = @Content(mediaType = "application/json",
-  // schema = @Schema(implementation = ProblemDetails.class)))
-  // })
-  // @GetMapping
-  // public ResponseEntity<Page<UserResponse>> findAll(
-  // @RequestParam(value = "page", defaultValue = "0") Integer page,
-  // @RequestParam(value = "linesPerPage", defaultValue = "12") Integer
-  // linesPerPage,
-  // @RequestParam(value = "direction", defaultValue = "ASC") String direction,
-  // @RequestParam(value = "orderBy", defaultValue = "firstName") String orderBy)
-  // {
+  @Operation(summary = "Lista usuários paginados com filtro opcional por nome", description = "Exige Bearer Token. Acesso restrito a ADMIN.", security = @SecurityRequirement(name = "security"), responses = {
+      @ApiResponse(responseCode = "200", description = "Usuários consultados com sucesso", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)))),
+      @ApiResponse(responseCode = "403", description = "Usuário sem permissão para acessar este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
+  })
+  @GetMapping
+  public ResponseEntity<Page<UserResponse>> findAll(@RequestParam(required = false) String firstName,
+      Pageable pageable) {
 
-  // logger.debug("Buscando usuários paginados - page: {}, size: {}, orderBy: {},
-  // direction: {}",
-  // page, linesPerPage, orderBy, direction);
+    logger.debug("Buscando usuários - firstName: {}, page: {}, size: {}, sort: {}",
+        firstName,
+        pageable.getPageNumber(),
+        pageable.getPageSize(),
+        pageable.getSort().isSorted() ? pageable.getSort() : "unsorted");
 
-  // Pageable pageable = PageRequest.of(page, linesPerPage,
-  // Direction.fromString(direction), orderBy);
-  // Page<UserResponse> response = userService.findAllPaged(pageable);
+    Page<UserResponse> response = userService.findAllPaged(firstName, pageable);
 
-  // logger.debug("Usuários retornados: {}", response.getTotalElements());
-  // return ResponseEntity.ok(response);
-  // }
+    logger.debug("Usuários encontrados: {}", response.getTotalElements());
+
+    return ResponseEntity.ok(response);
+  }
 
   /**
    * Endpoint para buscar um usuário pelo ID.
@@ -179,63 +161,19 @@ public class UserController {
    * @param id identificador do usuário
    * @return usuário encontrado
    */
-  // @Operation(summary = "Busca um usuário pelo ID", description = "Recurso para
-  // obter detalhes de um usuário específico pelo seu ID.", responses = {
-  // @ApiResponse(responseCode = "200", description = "Usuário encontrado com
-  // sucesso", content = @Content(mediaType = "application/json", schema =
-  // @Schema(implementation = UserResponse.class))),
-  // @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
-  // content = @Content(mediaType = "application/json", schema =
-  // @Schema(implementation = ProblemDetails.class)))
-  // })
-  // @GetMapping(value = "/{id}")
-  // public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
-  // logger.debug("Buscando usuário por id: {}", id);
+  @Operation(summary = "Busca um usuário pelo ID", description = "Recurso para obter detalhes de um usuário específico pelo seu ID.", responses = {
+      @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDetailsResponse.class))),
+      @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
+  })
+  @GetMapping(value = "/{id}")
+  public ResponseEntity<UserDetailsResponse> findById(@PathVariable Long id) {
+    logger.debug("Buscando usuário por id: {}", id);
 
-  // UserResponse response = userService.findById(id);
+    UserDetailsResponse response = userService.findById(id);
 
-  // logger.debug("Usuário encontrado: id={}", id);
-  // return ResponseEntity.ok(response);
-  // }
-
-  /**
-   * Endpoint para busca de usuários por nome.
-   *
-   * <p>
-   * Realiza busca parcial (contém) e ignora maiúsculas/minúsculas.
-   * </p>
-   *
-   * <p>
-   * <b>Exemplo:</b>
-   * </p>
-   * 
-   * <pre>
-   * GET /api/v1/users/search?name=eletron
-   * </pre>
-   *
-   * @param name     termo de busca
-   * @param pageable paginação automática do Spring
-   * @return lista paginada de usuários filtrados
-   */
-  // @Operation(summary = "Busca usuários por nome", description = "Permite busca
-  // parcial de usuários pelo nome. Case insensitive.", responses = {
-  // @ApiResponse(responseCode = "200", description = "Lista paginada de usuários
-  // filtrados", content = @Content(mediaType = "application/json", array =
-  // @ArraySchema(schema = @Schema(implementation = UserResponse.class)))),
-  // @ApiResponse(responseCode = "400", description = "Parâmetro de busca
-  // inválido", content = @Content(mediaType = "application/json", schema =
-  // @Schema(implementation = ProblemDetails.class)))
-  // })
-  // @GetMapping("/search")
-  // public ResponseEntity<Page<UserResponse>> search(@RequestParam String name,
-  // Pageable pageable) {
-  // logger.debug("Buscando usuários por nome: {}", name);
-
-  // Page<UserResponse> response = userService.searchByName(name, pageable);
-
-  // logger.debug("Usuários encontrados: {}", response.getTotalElements());
-  // return ResponseEntity.ok(response);
-  // }
+    logger.debug("Usuário encontrado: id={}", id);
+    return ResponseEntity.ok(response);
+  }
 
   /**
    * Endpoint para atualização parcial de um usuário.
@@ -256,31 +194,21 @@ public class UserController {
    * @param userUpdateRequest dados para atualização
    * @return usuário atualizado
    */
-  // @Operation(summary = "Atualiza um usuário", description = "Atualização
-  // parcial dos dados do usuário. Apenas campos enviados são alterados.",
-  // responses = {
-  // @ApiResponse(responseCode = "200", description = "Usuário atualizado com
-  // sucesso", content = @Content(mediaType = "application/json", schema =
-  // @Schema(implementation = UserResponse.class))),
-  // @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
-  // content = @Content(mediaType = "application/json", schema =
-  // @Schema(implementation = ProblemDetails.class))),
-  // @ApiResponse(responseCode = "400", description = "Dados inválidos", content =
-  // @Content(mediaType = "application/json", schema = @Schema(implementation =
-  // ProblemDetails.class)))
-  // })
-  // @PatchMapping(value = "/{id}")
-  // public ResponseEntity<UserResponse> update(@PathVariable Long id,
-  // @RequestBody UserUpdateRequest userUpdateRequest) {
+  @Operation(summary = "Atualiza um usuário", description = "Atualização parcial dos dados do usuário. Apenas campos enviados são alterados.", responses = {
+      @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+      @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class))),
+      @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
+  })
+  @PatchMapping(value = "/{id}")
+  public ResponseEntity<UserResponse> update(@PathVariable Long id, @RequestBody UserUpdateRequest userUpdateRequest) {
 
-  // logger.debug("Atualizando usuário id={} com dados: {}", id,
-  // userUpdateRequest);
+    logger.debug("Atualizando usuário id={} com dados: {}", id, userUpdateRequest);
 
-  // UserResponse response = userService.update(id, userUpdateRequest);
+    UserResponse response = userService.update(id, userUpdateRequest);
 
-  // logger.info("Usuário atualizado com sucesso. id={}", id);
-  // return ResponseEntity.ok(response);
-  // }
+    logger.info("Usuário atualizado com sucesso. id={}", id);
+    return ResponseEntity.ok(response);
+  }
 
   /**
    * Endpoint para remoção de um usuário.
@@ -300,24 +228,18 @@ public class UserController {
    * @param id identificador do usuário
    * @return resposta sem conteúdo
    */
-  // @Operation(summary = "Remove um usuário", description = "Exclui um usuário
-  // pelo ID. Retorna erro se houver integridade referencial.", responses = {
-  // @ApiResponse(responseCode = "204", description = "Usuário deletado com
-  // sucesso"),
-  // @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
-  // content = @Content(mediaType = "application/json", schema =
-  // @Schema(implementation = ProblemDetails.class))),
-  // @ApiResponse(responseCode = "409", description = "Violação de integridade -
-  // existem entidades relacionadas", content = @Content(mediaType =
-  // "application/json", schema = @Schema(implementation = ProblemDetails.class)))
-  // })
-  // @DeleteMapping(value = "/{id}")
-  // public ResponseEntity<Void> delete(@PathVariable Long id) {
-  // logger.debug("Deletando usuário id={}", id);
+  @Operation(summary = "Remove um usuário", description = "Exclui um usuário pelo ID. Retorna erro se houver integridade referencial.", responses = {
+      @ApiResponse(responseCode = "204", description = "Usuário deletado com sucesso"),
+      @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class))),
+      @ApiResponse(responseCode = "409", description = "Violação de integridade - existem entidades relacionadas", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
+  })
+  @DeleteMapping(value = "/{id}")
+  public ResponseEntity<Void> delete(@PathVariable Long id) {
+    logger.debug("Deletando usuário id={}", id);
 
-  // userService.delete(id);
+    userService.delete(id);
 
-  // logger.info("Usuário deletado com sucesso. id={}", id);
-  // return ResponseEntity.noContent().build();
-  // }
+    logger.info("Usuário deletado com sucesso. id={}", id);
+    return ResponseEntity.noContent().build();
+  }
 }

@@ -189,8 +189,10 @@ public class ControllerExceptionHandler {
   @ExceptionHandler(NoResourceFoundException.class)
   public ResponseEntity<ProblemDetails> handleNoResourceFound(NoResourceFoundException e, HttpServletRequest request) {
     HttpStatus status = HttpStatus.NOT_FOUND;
-    logger.debug("Static resource not found - path: {}", request.getRequestURI());
-    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(), "Resource not found",
+    logger.debug("Static resource not found - path: {}",
+        request.getRequestURI());
+    ProblemDetails err = new ProblemDetails(Instant.now(), status.value(),
+        "Resource not found",
         "Static resource not found", request.getRequestURI());
     return ResponseEntity.status(status).body(err);
   }

@@ -1,24 +1,25 @@
 package com.albertsilva.dev.dscatalog.services;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.albertsilva.dev.dscatalog.dto.user.mapper.UserMapper;
 import com.albertsilva.dev.dscatalog.dto.user.request.UserCreateRequest;
+import com.albertsilva.dev.dscatalog.dto.user.request.UserUpdateRequest;
+import com.albertsilva.dev.dscatalog.dto.user.response.UserDetailsResponse;
 import com.albertsilva.dev.dscatalog.dto.user.response.UserResponse;
 import com.albertsilva.dev.dscatalog.entities.Role;
 import com.albertsilva.dev.dscatalog.entities.User;
 import com.albertsilva.dev.dscatalog.repositories.RoleRepository;
 import com.albertsilva.dev.dscatalog.repositories.UserRepository;
-import com.albertsilva.dev.dscatalog.services.exceptions.DatabaseException;
 import com.albertsilva.dev.dscatalog.services.exceptions.ResourceNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -61,46 +62,66 @@ public class UserService {
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final UserMapper userMapper;
+  private final BCryptPasswordEncoder passwordEncoder;
 
   /**
    * Constrói o serviço de usuários com suas dependências principais.
    *
-   * @param userRepository repositório de usuários
-   * @param roleRepository repositório de papéis
-   * @param userMapper     responsável pela conversão entre DTOs e entidades
+   * @param userRepository  repositório de usuários
+   * @param roleRepository  repositório de papéis
+   * @param userMapper      responsável pela conversão entre DTOs e entidades
+   * @param passwordEncoder codificador de senhas
    */
-  public UserService(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper) {
+  public UserService(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper,
+      BCryptPasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
     this.roleRepository = roleRepository;
     this.userMapper = userMapper;
+    this.passwordEncoder = passwordEncoder;
   }
 
   /**
-   * Retorna uma lista paginada de usuários.
+   * Busca paginada de usuários, com opção de filtro por nome.
    *
    * <p>
-   * Permite consultar usuários de forma escalável,
-   * evitando carregamento excessivo de registros.
+   * Permite busca parcial e case insensitive,
+   * utilizando correspondência por conteúdo textual.
    * </p>
    *
-   * @param pageable informações de paginação
-   * @return página de {@link UserResponse}
+   * @param firstName termo de busca para o nome do usuário
+   * @param pageable  informações de paginação
+   * @return página de usuários encontrados
    *
    * @implNote
-   *           Utiliza paginação nativa do Spring Data JPA,
-   *           reduzindo consumo de memória e melhorando performance.
+   *           Utiliza consulta derivada do Spring Data JPA:
+   *           {@code findByFirstNameContainingIgnoreCase}.
+   *
+   *           <p>
+   *           Essa abordagem reduz necessidade
+   *           de implementação manual de queries.
+   *           </p>
    *
    * @apiNote
    *          Esta implementação reforça conceitos importantes como:
-   *          paginação, escalabilidade e otimização de consultas.
+   *          consultas derivadas, filtros dinâmicos,
+   *          paginação e busca textual eficiente.
    */
-  // @Transactional(readOnly = true)
-  // public Page<CategoryResponse> findAllPaged(Pageable pageable) {
-  // logger.debug("Buscando categorias paginadas - page: {}, size: {}",
-  // pageable.getPageNumber(),
-  // pageable.getPageSize());
-  // return userMapper.toResponsePage(userRepository.findAll(pageable));
-  // }
+  @Transactional(readOnly = true)
+  public Page<UserResponse> findAllPaged(String firstName, Pageable pageable) {
+    logger.debug("Buscando usuários. filtroNome: {}", firstName);
+
+    Page<User> users;
+
+    if (hasText(firstName)) {
+      users = userRepository.findByFirstNameContainingIgnoreCase(firstName.trim(), pageable);
+    } else {
+      users = userRepository.findAll(pageable);
+    }
+
+    logger.debug("Total de usuários encontrados: {}", users.getTotalElements());
+
+    return userMapper.toResponsePage(users);
+  }
 
   /**
    * Busca uma categoria pelo seu identificador.
@@ -122,19 +143,18 @@ public class UserService {
    *          Esta implementação reforça conceitos importantes como:
    *          Optional, tratamento de exceções e busca segura de entidades.
    */
-  // @Transactional(readOnly = true)
-  // public UserResponse findById(Long id) {
-  // logger.debug("Buscando usuário por id: {}", id);
+  @Transactional(readOnly = true)
+  public UserDetailsResponse findById(Long id) {
+    logger.debug("Buscando usuário por id: {}", id);
 
-  // User entity = userRepository.findById(id)
-  // .orElseThrow(() -> {
-  // logger.warn("Usuário não encontrado. id: {}", id);
-  // return new ResourceNotFoundException("Entity not found id: " + id);
-  // });
+    User entity = userRepository.findById(id).orElseThrow(() -> {
+      logger.warn("Usuário não encontrado. id: {}", id);
+      return new ResourceNotFoundException("Entity not found id: " + id);
+    });
 
-  // logger.debug("Usuário encontrado. id: {}", id);
-  // return userMapper.toResponse(entity);
-  // }
+    logger.debug("Usuário encontrado. id: {}", id);
+    return userMapper.toDetailsResponse(entity);
+  }
 
   /**
    * Insere um novo usuário no sistema.
@@ -156,17 +176,17 @@ public class UserService {
    *          DTO Pattern, persistência e criação de entidades em APIs RESTful.
    */
   @Transactional
-  public UserResponse insert(UserCreateRequest userCreateRequest) {
-    logger.debug("Inserindo novo usuário - dados: {}", userCreateRequest);
+  public UserResponse insert(UserCreateRequest request) {
+    logger.debug("Inserindo novo usuário - email: {}", request.email());
 
-    Set<Role> roles = userCreateRequest.roleIds().stream().map(id -> roleRepository.getReferenceById(id))
-        .collect(Collectors.toSet());
+    Set<Role> roles = findRolesByIdsOrThrow(request.roleIds());
 
-    User entity = UserMapper.toEntity(userCreateRequest, roles);
+    User entity = userMapper.toEntity(request, roles);
+    entity.setPassword(passwordEncoder.encode(request.password()));
 
     entity = userRepository.save(entity);
     logger.info("Usuário criado com sucesso. id: {}", entity.getId());
-    return UserMapper.toResponse(entity);
+    return userMapper.toResponse(entity);
   }
 
   /**
@@ -195,23 +215,33 @@ public class UserService {
    *          JPA Proxy, Lazy Loading, atualização parcial e Contexto de
    *          Persistência.
    */
-  // @Transactional
-  // public UserResponse update(Long id, UserUpdateRequest userUpdateRequest) {
-  // logger.debug("Atualizando usuário. id: {}", id);
+  @Transactional
+  public UserResponse update(Long id, UserUpdateRequest request) {
 
-  // try {
-  // User entity = userRepository.getReferenceById(id);
-  // userMapper.updateEntity(userUpdateRequest, entity);
-  // entity = userRepository.save(entity);
+    logger.debug("Atualizando usuário. id: {}", id);
 
-  // logger.info("Usuário atualizado com sucesso. id: {}", id);
-  // return userMapper.toResponse(entity);
+    try {
+      User entity = userRepository.getReferenceById(id);
 
-  // } catch (EntityNotFoundException e) {
-  // logger.warn("Falha ao atualizar. Usuário não encontrado. id: {}", id);
-  // throw new ResourceNotFoundException("Entity not found id: " + id);
-  // }
-  // }
+      Set<Role> roles = findRolesByIdsOrThrow(request.roleIds());
+
+      userMapper.updateEntity(request, entity, roles);
+
+      if (request.password() != null) {
+        entity.setPassword(passwordEncoder.encode(request.password()));
+      }
+
+      entity = userRepository.save(entity);
+
+      logger.info("Usuário atualizado com sucesso. id: {}", id);
+
+      return userMapper.toResponse(entity);
+
+    } catch (EntityNotFoundException e) {
+      logger.warn("Falha ao atualizar. Usuário não encontrado. id: {}", id);
+      throw new ResourceNotFoundException("Entity not found id: " + id);
+    }
+  }
 
   /**
    * Remove uma categoria existente do sistema.
@@ -266,19 +296,18 @@ public class UserService {
    *          controle transacional, otimização de consultas
    *          e tratamento centralizado de exceções.
    */
-  // @Transactional
-  // public void delete(Long id) {
-  // logger.debug("Deletando usuário. id: {}", id);
+  @Transactional
+  public void delete(Long id) {
+    logger.debug("Deletando usuário. id: {}", id);
 
-  // User entity = userRepository.findById(id)
-  // .orElseThrow(() -> {
-  // logger.warn("Falha ao deletar. Usuário não encontrado. id: {}", id);
-  // return new ResourceNotFoundException("Entity not found id: " + id);
-  // });
+    User entity = userRepository.findById(id).orElseThrow(() -> {
+      logger.warn("Falha ao deletar. Usuário não encontrado. id: {}", id);
+      return new ResourceNotFoundException("Entity not found id: " + id);
+    });
 
-  // userRepository.delete(entity);
-  // logger.info("Usuário deletado com sucesso. id: {}", id);
-  // }
+    userRepository.delete(entity);
+    logger.info("Usuário deletado com sucesso. id: {}", id);
+  }
 
   /**
    * Realiza busca paginada de usuários por nome.
@@ -306,15 +335,61 @@ public class UserService {
    *          consultas derivadas, filtros dinâmicos,
    *          paginação e busca textual eficiente.
    */
-  // @Transactional(readOnly = true)
-  // public Page<UserResponse> searchByName(String name, Pageable pageable) {
-  // logger.debug("Buscando usuários por nome. termo: {}", name);
+  @Transactional(readOnly = true)
+  public Page<UserResponse> searchByName(String firstName, Pageable pageable) {
+    logger.debug("Buscando usuários por nome. termo: {}", firstName);
 
-  // Page<User> users = userRepository.findByNameContainingIgnoreCase(name,
-  // pageable);
+    Page<User> users = userRepository.findByFirstNameContainingIgnoreCase(firstName, pageable);
 
-  // logger.debug("Resultado da busca por nome '{}' - total encontrados: {}",
-  // name, users.getTotalElements());
-  // return userMapper.toResponsePage(users);
-  // }
+    logger.debug("Resultado da busca por nome '{}' - total encontrados: {}", firstName, users.getTotalElements());
+    return userMapper.toResponsePage(users);
+  }
+
+  /**
+   * Busca um conjunto de papéis (roles) por seus identificadores.
+   *
+   * <p>
+   * Valida que todos os IDs fornecidos correspondem a papéis existentes,
+   * garantindo integridade referencial antes de associar a um usuário.
+   * </p>
+   *
+   * @param roleIds conjunto de IDs de papéis
+   * @return conjunto de entidades {@link Role} correspondentes
+   * @throws ResourceNotFoundException caso algum ID não corresponda a um papel
+   *                                   existente
+   *
+   * @implNote
+   *           Utiliza {@code findAllById(roleIds)} para consulta eficiente
+   *           e validação de existência em lote, evitando múltiplas consultas
+   *           individuais.
+   *
+   * @apiNote
+   *          Esta implementação reforça conceitos importantes como:
+   *          validação de dados, integridade referencial,
+   *          otimização de consultas e tratamento de exceções.
+   */
+  private Set<Role> findRolesByIdsOrThrow(Set<Long> roleIds) {
+
+    if (roleIds == null) {
+      return null;
+    }
+
+    Set<Role> roles = new HashSet<>(roleRepository.findAllById(roleIds));
+
+    if (roles.size() != roleIds.size()) {
+      throw new ResourceNotFoundException("One or more roles not found for ids: " + roleIds);
+    }
+
+    return roles;
+  }
+
+  /**
+   * Verifica se uma string possui texto (não é nula, vazia ou apenas espaços).
+   *
+   * @param value string a ser verificada
+   * @return {@code true} se a string tiver texto, {@code false} caso contrário
+   */
+  private boolean hasText(String value) {
+    return value != null && !value.trim().isEmpty();
+  }
 }
