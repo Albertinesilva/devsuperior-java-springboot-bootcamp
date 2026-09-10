@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
@@ -245,28 +246,54 @@ public class CustomPasswordAuthenticationProvider implements AuthenticationProvi
         .authorizedScopes(authorizedScopes);
 
     // -----------ACCESS TOKEN----------
-    OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
-    OAuth2Token generatedAccessToken = this.tokenGenerator.generate(tokenContext);
+    OAuth2TokenContext accessTokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
+
+    OAuth2Token generatedAccessToken = this.tokenGenerator.generate(accessTokenContext);
+
     if (generatedAccessToken == null) {
       OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
           "The token generator failed to generate the access token.", ERROR_URI);
+
       throw new OAuth2AuthenticationException(error);
     }
 
-    OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER,
-        generatedAccessToken.getTokenValue(), generatedAccessToken.getIssuedAt(),
-        generatedAccessToken.getExpiresAt(), tokenContext.getAuthorizedScopes());
+    OAuth2AccessToken accessToken = new OAuth2AccessToken(
+        OAuth2AccessToken.TokenType.BEARER,
+        generatedAccessToken.getTokenValue(),
+        generatedAccessToken.getIssuedAt(),
+        generatedAccessToken.getExpiresAt(),
+        accessTokenContext.getAuthorizedScopes());
+
     if (generatedAccessToken instanceof ClaimAccessor) {
-      authorizationBuilder.token(accessToken, (metadata) -> metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME,
+      authorizationBuilder.token(accessToken, metadata -> metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME,
           ((ClaimAccessor) generatedAccessToken).getClaims()));
     } else {
       authorizationBuilder.accessToken(accessToken);
     }
 
+    // -----------REFRESH TOKEN----------
+    OAuth2TokenContext refreshTokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
+
+    OAuth2Token generatedRefreshToken = this.tokenGenerator.generate(refreshTokenContext);
+
+    if (generatedRefreshToken == null) {
+      OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR,
+          "The token generator failed to generate the refresh token.", ERROR_URI);
+
+      throw new OAuth2AuthenticationException(error);
+    }
+
+    OAuth2RefreshToken refreshToken = (OAuth2RefreshToken) generatedRefreshToken;
+
+    authorizationBuilder.refreshToken(refreshToken);
+
+    // -----------SAVE AUTHORIZATION----------
     OAuth2Authorization authorization = authorizationBuilder.build();
+
     this.authorizationService.save(authorization);
 
-    return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal, accessToken);
+    // -----------RETURN TOKENS----------
+    return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal, accessToken, refreshToken);
   }
 
   /**
@@ -304,7 +331,6 @@ public class CustomPasswordAuthenticationProvider implements AuthenticationProvi
    * </p>
    *
    * @param user     detalhes do usuário carregados do banco
-   * @param username nome de usuário fornecido na autenticação
    * @param password senha fornecida na autenticação
    * @throws OAuth2AuthenticationException se o username não corresponder ou se a
    *                                       senha for inválida

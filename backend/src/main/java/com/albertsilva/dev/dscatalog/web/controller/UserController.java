@@ -109,7 +109,7 @@ public class UserController {
       @ApiResponse(responseCode = "500", description = "Erro interno do servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProblemDetails.class)))
   })
   @GetMapping(value = "/{id}")
-  @PreAuthorize("hasRole('ADMIN') OR (hasRole('OPERATOR') AND #id == authentication.principal.id)")
+  @PreAuthorize("hasRole('ADMIN') OR (hasRole('OPERATOR') AND @authenticatedUserService.isCurrentUser(#id))")
   public ResponseEntity<UserDetailsResponse> findById(@PathVariable Long id) {
     logger.debug("Buscando usuário por id: {}", id);
 

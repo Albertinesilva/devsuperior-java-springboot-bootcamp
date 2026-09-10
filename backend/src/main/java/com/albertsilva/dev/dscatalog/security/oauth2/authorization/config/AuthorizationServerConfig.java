@@ -38,6 +38,7 @@ import org.springframework.security.oauth2.server.authorization.token.Delegating
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2AccessTokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.web.SecurityFilterChain;
@@ -242,7 +243,7 @@ public class AuthorizationServerConfig {
    * Define um cliente único com credenciais recuperadas de propriedades de
    * configuração.
    * O cliente é configurado para utilizar o grant type "password" customizado,
-   * apropriado para aplicações desktop/mobile confiáveis.
+   * apropriado para aplicações React SPA → Browser que confiam no servidor de autorização.
    * </p>
    *
    * <p>
@@ -273,7 +274,12 @@ public class AuthorizationServerConfig {
 			.clientSecret(passwordEncoder.encode(clientSecret))
 			.scope("read")
 			.scope("write")
-			.authorizationGrantType(new AuthorizationGrantType("password"))
+			.authorizationGrantType(
+        new AuthorizationGrantType("password")
+      )
+      .authorizationGrantType(
+        AuthorizationGrantType.REFRESH_TOKEN
+      )
 			.tokenSettings(tokenSettings())
 			.clientSettings(clientSettings())
 			.build();
@@ -313,6 +319,8 @@ public class AuthorizationServerConfig {
 		return TokenSettings.builder()
 			.accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
 			.accessTokenTimeToLive(Duration.ofSeconds(jwtDurationSeconds))
+      .refreshTokenTimeToLive(Duration.ofDays(30))
+      .reuseRefreshTokens(false)
 			.build();
 		// @formatter:on
   }
@@ -380,7 +388,8 @@ public class AuthorizationServerConfig {
     JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
     jwtGenerator.setJwtCustomizer(tokenCustomizer());
     OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
-    return new DelegatingOAuth2TokenGenerator(jwtGenerator, accessTokenGenerator);
+    OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();
+    return new DelegatingOAuth2TokenGenerator(jwtGenerator, accessTokenGenerator, refreshTokenGenerator);
   }
 
   /**

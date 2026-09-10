@@ -85,4 +85,15 @@ public class AuthenticatedUserService {
     return userRepository.findById(userId)
         .orElseThrow(() -> new AuthenticatedUserNotFoundException("error.auth.user.notFound"));
   }
+
+  /**
+   * Verifica se o usuário informado é o usuário atualmente autenticado.
+   *
+   * @param userId identificador do usuário a ser verificado
+   * @return {@code true} quando o usuário informado corresponde ao usuário
+   *         autenticado; {@code false} caso contrário
+   */
+  public boolean isCurrentUser(Long userId) {
+    return getAuthenticatedUser().getId().equals(userId);
+  }
 }

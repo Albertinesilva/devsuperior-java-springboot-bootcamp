@@ -5,7 +5,8 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
- * Objeto de domínio que representa um usuário autenticado com suas autoridades.
+ * Contexto de usuário autenticado utilizado internamente durante a emissão dos
+ * tokens OAuth2.
  *
  * <p>
  * Esta classe encapsula informações essenciais de um usuário que foi
